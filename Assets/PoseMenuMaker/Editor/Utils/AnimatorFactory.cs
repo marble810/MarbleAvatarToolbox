@@ -4,11 +4,27 @@ using UnityEngine.Animations;
 using System.Collections.Generic;
 using System.IO;
 using UnityEditor.Animations;
+using System;
 
 namespace marble810.AvatarTools.PoseMenuMaker.Utils
 {
     public static class AnimatorFactory
     {
+
+        private static string paramName = "PoseIndex";
+
+        private static AnimationClip emptyClip = AssetDatabase.LoadAssetAtPath<AnimationClip>(Domain.Path.EmptyClipPath);
+
+        private static void SetTransSettings(AnimatorStateTransition targetTransition, int paramValue)
+        {
+
+            targetTransition.exitTime = 0f;
+            targetTransition.duration = 0f;
+            targetTransition.hasExitTime = false;
+
+            targetTransition.AddCondition(AnimatorConditionMode.Equals, paramValue, paramName);
+        }
+
         public static AnimatorController CreateAnimator(string assetPath, List<AnimationClip> clips)
         {
 
@@ -43,12 +59,31 @@ namespace marble810.AvatarTools.PoseMenuMaker.Utils
             var rootStateMachine = controller.layers[0].stateMachine;
             if (clips != null)
             {
-                foreach (var clip in clips)
-                {
-                    if (clip == null) continue;
-                    AnimatorState newState = rootStateMachine.AddState(clip.name);
-                    newState.motion = clip;
-                }
+
+                rootStateMachine.anyStatePosition = new Vector2(100, 600);
+
+                //AddParam
+                controller.AddParameter(paramName, AnimatorControllerParameterType.Int);
+
+                //AddEmpty
+                AnimatorState emptyState = rootStateMachine.AddState(emptyClip.name);
+                emptyState.motion = emptyClip;
+                AnimatorStateTransition emptyTrans = rootStateMachine.AddAnyStateTransition(emptyState);
+                SetTransSettings(emptyTrans,0);
+                //Add的第一个State默认连线了，不需要再连线
+
+
+            for (int i = 0; i < clips.Count; i++)
+            {
+                var clip = clips[i];
+                if (clip == null) continue;
+                AnimatorState newState = rootStateMachine.AddState(clip.name);
+                newState.motion = clip;
+                AnimatorStateTransition newStateTransition = rootStateMachine.AddAnyStateTransition(newState);
+                SetTransSettings(newStateTransition, i+1);
+            }
+
+
             }
 
             EditorUtility.SetDirty(controller);

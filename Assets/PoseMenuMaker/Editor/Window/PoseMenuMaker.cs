@@ -168,8 +168,11 @@ namespace marble810.AvatarTools.PoseMenuMaker
 
             if (GUILayout.Button("Create Animator Test"))
             {
-                    string path = Domain.Path.AnimatorPath;
-                    UnityEditor.Animations.AnimatorController animator = Utils.AnimatorFactory.CreateAnimator(path,)
+                    string path = Domain.Path.AnimatorPath + "Test.controller";
+
+                    List<AnimationClip> allClips = GetAllClips();
+
+                    UnityEditor.Animations.AnimatorController animator = Utils.AnimatorFactory.CreateAnimator(path, allClips);
             }
             
         }

@@ -6,7 +6,7 @@ using VRC.SDK3.Dynamics.PhysBone.Components;
 using System.Drawing.Text;
 using HarmonyLib;
 
-namespace marble810.AvatarTools.PhysBoneSync
+namespace marble810.MarbleAvatarTools.PhysBoneTools
 {
     public class PhysBoneCollidersBatchSetup : EditorWindow
     {
@@ -19,7 +19,7 @@ namespace marble810.AvatarTools.PhysBoneSync
         private SerializedProperty colliderProperty;
         private SerializedProperty targetProperty;
 
-        [MenuItem("MarbleTools/PhysBone Colliders Batch Setup")]
+        [MenuItem("MarbleAvatarTools/PhysBone/PhysBone Colliders Batch Setup")]
         public static void ShowWindow()
         {
             GetWindow<PhysBoneCollidersBatchSetup>("PhysBone Colliders Batch Setup");

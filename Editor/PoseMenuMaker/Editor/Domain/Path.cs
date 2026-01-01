@@ -1,4 +1,4 @@
-namespace marble810.AvatarTools.PoseMenuMaker.Domain
+namespace marble810.MarbleAvatarTools.PoseMenuMaker.Domain
 {
     public static class Path
     {

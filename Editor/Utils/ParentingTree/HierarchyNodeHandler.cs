@@ -2,22 +2,22 @@ using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
 
-namespace marble810.AvatarTools.Utils
+namespace marble810.MarbleAvatarTools.Utils
 {
-    internal static class ParentingTreeHandler
+    internal static class HierarchyNodeHandler
     {
 
-        internal static ParentingTree GetParentingChain(GameObject parent)
+        internal static HierarchyNode GetHierarchyNode(GameObject parent)
         {
             if (parent == null)
             {
                 return null;
             }
 
-            ParentingTree chain = new ParentingTree
+            HierarchyNode node = new HierarchyNode
             {
                 nodeObject = parent,
-                children = new List<ParentingTree>()
+                children = new List<HierarchyNode>()
             };
 
             int childCount = parent.transform.childCount;
@@ -27,22 +27,24 @@ namespace marble810.AvatarTools.Utils
             {
                 GameObject child = parent.transform.GetChild(i).gameObject;
                 childNames.Add(child.name);
-                ParentingTree childNode = GetParentingChain(child);
-                chain.children.Add(childNode);
+                HierarchyNode childNode = GetHierarchyNode(child);
+                node.children.Add(childNode);
             }
             
             // Debug.Log($"Got Children:{string.Join(", ",childNames)}");
 
-            return chain;
+            return node;
         }
     }
 
     [System.Serializable]
-    public class ParentingTree
+    public class HierarchyNode
     {
         public GameObject nodeObject;
         public bool isSelected;
-        public List<ParentingTree> children = new List<ParentingTree>();
+
+        [SerializeReference]
+        public List<HierarchyNode> children = new List<HierarchyNode>();
     }
 
 }

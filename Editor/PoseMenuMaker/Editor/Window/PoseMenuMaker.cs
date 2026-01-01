@@ -8,7 +8,7 @@ using System.Linq;
 using VRC.SDK3.Avatars.Components;
 using System;
 
-namespace marble810.AvatarTools.PoseMenuMaker
+namespace marble810.MarbleAvatarTools.PoseMenuMaker
 {
     public class PoseMenuMaker : EditorWindow
 {
@@ -22,7 +22,7 @@ namespace marble810.AvatarTools.PoseMenuMaker
     private readonly Dictionary<int, ReorderableList> groupRL = new();
 
     /* ---------- 打开窗口 ---------- */
-    [MenuItem("MarbleTools/PoseMenuMaker")]
+    [MenuItem("MarbleAvatarTools/PoseMenuMaker")]
     static void Open() => GetWindow<PoseMenuMaker>("Pose Menu Maker");
 
     /* ---------- GameObject 右键菜单 ---------- */

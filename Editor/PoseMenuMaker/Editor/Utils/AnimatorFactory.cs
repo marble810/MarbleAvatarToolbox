@@ -6,7 +6,7 @@ using System.IO;
 using UnityEditor.Animations;
 using System;
 
-namespace marble810.AvatarTools.PoseMenuMaker.Utils
+namespace marble810.MarbleAvatarTools.PoseMenuMaker.Utils
 {
     public static class AnimatorFactory
     {

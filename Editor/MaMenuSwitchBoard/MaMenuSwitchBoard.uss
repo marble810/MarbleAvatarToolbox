@@ -1,0 +1,207 @@
+/* MaMenuSwitchBoard Main Styles */
+.ma-menu-switchboard {
+    flex-grow: 1;
+}
+
+/* Toolbar */
+.top-panel {
+    flex-direction: column;
+    padding: 6px;
+    border-bottom-width: 1px;
+    border-bottom-color: #242424;
+}
+
+.avatar-field {
+    margin-bottom: 4px;
+}
+
+.scene-avatar-list-label {
+    margin-top: 2px;
+    margin-bottom: 2px;
+    -unity-font-style: bold;
+}
+
+.scene-avatar-row {
+    padding-left: 3px;
+    padding-right: 3px;
+    padding-top: 0;
+    padding-bottom: 0;
+    margin-bottom: 2px;
+    height: 20px;
+    border-top-width: 1px;
+    border-right-width: 1px;
+    border-bottom-width: 1px;
+    border-left-width: 1px;
+    border-top-color: #171717;
+    border-right-color: #171717;
+    border-bottom-color: #171717;
+    border-left-color: #171717;
+    -unity-text-align: middle-left;
+}
+
+.show-scene-avatar-list-button {
+    height: 22px;
+    margin-top: 2px;
+    margin-bottom: 4px;
+    padding-left: 8px;
+    padding-right: 8px;
+}
+
+.button-bar {
+    flex-direction: row;
+    margin-top: 2px;
+    margin-bottom: 4px;
+}
+
+.button-bar Button {
+    height: 22px;
+    margin-right: 6px;
+    padding-left: 8px;
+    padding-right: 8px;
+}
+
+.menu-items-list {
+    flex-grow: 1;
+}
+
+/* Menu Item Row */
+.menu-item-row {
+    flex-direction: row;
+    align-items: center;
+    min-height: 22px;
+    padding-left: 2px;
+    padding-right: 4px;
+    padding-top: 0;
+    padding-bottom: 0;
+    border-bottom-width: 1px;
+    border-bottom-color: #252525;
+}
+
+.menu-item-row:hover {
+    background-color: rgba(255, 255, 255, 0.05);
+}
+
+/* Foldout Button */
+.foldout-button {
+    width: 18px;
+    height: 18px;
+    padding: 0;
+    margin-left: 0;
+    margin-right: 3px;
+    font-size: 10px;
+    align-items: center;
+    justify-content: center;
+}
+
+.menu-item-indent {
+    width: 0;
+    height: 1px;
+    flex-shrink: 0;
+}
+
+/* Menu Item Icon */
+.menu-item-icon {
+    width: 16px;
+    height: 16px;
+    margin-right: 4px;
+    flex-shrink: 0;
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+}
+
+/* Menu Item Label */
+.menu-item-label {
+    flex-grow: 0;
+    flex-shrink: 1;
+    -unity-font-style: normal;
+    margin-left: 0;
+    margin-right: 5px;
+    -unity-text-align: middle-left;
+}
+
+/* Spacer */
+.spacer {
+    min-width: 10px;
+}
+
+/* State Override Controller */
+.state-override-controller {
+    flex-direction: row;
+    flex-shrink: 0;
+}
+
+/* Override Buttons */
+.btn-disable, .btn-default, .btn-enable {
+    width: 30px;
+    height: 20px;
+    padding: 0;
+    margin-left: 0;
+    margin-right: 1px;
+    margin-top: 0;
+    margin-bottom: 0;
+    font-size: 14px;
+    -unity-font-style: bold;
+    align-items: center;
+    justify-content: center;
+}
+
+.btn-disable {
+    color: #ff6b6b;
+}
+
+.btn-disable.active {
+    background-color: rgba(255, 107, 107, 0.3);
+}
+
+.btn-default {
+    color: #cccccc;
+}
+
+.btn-default.active {
+    background-color: rgba(204, 204, 204, 0.3);
+}
+
+.btn-enable {
+    color: #51cf66;
+}
+
+.btn-enable.active {
+    background-color: rgba(81, 207, 102, 0.3);
+}
+
+/* State Visualization */
+.override-enable .menu-item-label {
+    color: #51cf66;
+}
+
+.override-disable .menu-item-label {
+    color: #ff6b6b;
+    -unity-font-style: italic;
+}
+
+.override-default .menu-item-label {
+    color: #cccccc;
+}
+
+/* Footer */
+.footer {
+    flex-direction: row;
+    padding: 4px;
+    border-top-width: 1px;
+    border-top-color: #222;
+}
+
+.footer button {
+    margin-left: 4px;
+}
+
+/* List View */
+.scroll-view {
+    flex-grow: 1;
+}
+
+/* Selected State */
+.menu-item-row.selected {
+    background-color: rgba(0, 128, 255, 0.2);
+}

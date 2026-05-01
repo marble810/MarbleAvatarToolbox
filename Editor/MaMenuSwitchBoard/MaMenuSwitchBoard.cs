@@ -25,6 +25,7 @@ namespace marble810.MarbleAvatarTools.MaMenuSwitchBoard
         private List<MenuItemNode> allMenuItems = new List<MenuItemNode>();
         private List<MenuItemNode> visibleMenuItems = new List<MenuItemNode>();
         private Button clearAllButton;
+        private Button focusAvatarButton;
         private Button refreshButton;
         private bool refreshPending;
         private object lastMenuItemOverridesValue;
@@ -131,6 +132,10 @@ namespace marble810.MarbleAvatarTools.MaMenuSwitchBoard
             refreshButton.text = "Refresh";
             buttonBar.Add(refreshButton);
 
+            focusAvatarButton = new Button(OnFocusAvatarClicked);
+            focusAvatarButton.text = "定位到Avatar GameObject";
+            buttonBar.Add(focusAvatarButton);
+
             clearAllButton = new Button(OnClearAllOverrides);
             clearAllButton.text = "Clear All Overrides";
             buttonBar.Add(clearAllButton);
@@ -189,6 +194,7 @@ namespace marble810.MarbleAvatarTools.MaMenuSwitchBoard
                 UpdateSceneAvatarSelection(null);
             }
 
+            UpdateFocusAvatarButtonState();
             UpdateSceneAvatarListVisibility();
         }
 
@@ -201,6 +207,15 @@ namespace marble810.MarbleAvatarTools.MaMenuSwitchBoard
             {
                 LoadMenuItems(avatar);
             }
+        }
+
+        private void OnFocusAvatarClicked()
+        {
+            var avatar = avatarField?.value as GameObject;
+            if (avatar == null) return;
+
+            Selection.activeGameObject = avatar;
+            EditorGUIUtility.PingObject(avatar);
         }
 
         private VisualElement MakeSceneAvatarRow()
@@ -284,6 +299,7 @@ namespace marble810.MarbleAvatarTools.MaMenuSwitchBoard
             sceneAvatarListView.itemsSource = sceneAvatars;
             sceneAvatarListView.Rebuild();
             UpdateSceneAvatarSelection(avatarField?.value as GameObject);
+            UpdateFocusAvatarButtonState();
             UpdateSceneAvatarListVisibility();
         }
 
@@ -319,6 +335,11 @@ namespace marble810.MarbleAvatarTools.MaMenuSwitchBoard
             {
                 sceneAvatarListView.SetSelectionWithoutNotify(new int[0]);
             }
+        }
+
+        private void UpdateFocusAvatarButtonState()
+        {
+            focusAvatarButton?.SetEnabled(avatarField?.value != null);
         }
 
         private static string GetHierarchyPath(GameObject gameObject)

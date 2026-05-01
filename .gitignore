@@ -1,0 +1,12 @@
+# Local agent prompts and skills are workspace-only.
+/.github/prompts/
+/.github/skills/
+
+# Local repository instructions.
+/AGENTS.md
+
+# OpenSpec planning artifacts are kept out of version control in this repo.
+/openspec/
+
+# Machine-specific development environment.
+/Script/dev.env

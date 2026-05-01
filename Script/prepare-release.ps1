@@ -220,7 +220,7 @@ function Assert-WorkingTreeReady {
         return
     }
 
-    $dirtyPaths = Get-DirtyPaths
+    $dirtyPaths = @(Get-DirtyPaths)
     if ($dirtyPaths.Count -eq 0) {
         return
     }

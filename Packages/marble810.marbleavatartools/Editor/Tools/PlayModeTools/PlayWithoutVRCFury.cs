@@ -12,14 +12,10 @@ namespace marble810.MarbleAvatarTools.PlayModeTools
     [InitializeOnLoad]
     internal static class PlayWithoutVRCFury
     {
-        private const string MenuRoot = "MarbleAvatarTools/VRCFury-Free Avatar/";
-        private const string PlayMenuPath = MenuRoot + "Play Without VRCFury";
-        private const string CopyMenuPath = MenuRoot + "Copy Without VRCFury To Hierarchy";
+        private const string PlayMenuPath = "MarbleAvatarTools/Play Without VRCFury";
         private const string ContextMenuRoot = "GameObject/marbleTools/VRCFury-Free Avatar/";
         private const string PlayContextMenuPath = ContextMenuRoot + "Play Without VRCFury";
-        private const string CopyContextMenuPath = ContextMenuRoot + "Copy Without VRCFury To Hierarchy";
         private const string PlayCloneSuffix = " (No VRCFury Play Clone)";
-        private const string CopyCloneSuffix = " (No VRCFury Copy)";
 
         private sealed class SessionState
         {
@@ -49,18 +45,6 @@ namespace marble810.MarbleAvatarTools.PlayModeTools
             return !EditorApplication.isPlayingOrWillChangePlaymode;
         }
 
-        [MenuItem(CopyMenuPath)]
-        private static void CopyFromMenu()
-        {
-            CopyToHierarchyForSelection(Selection.activeGameObject);
-        }
-
-        [MenuItem(CopyMenuPath, true)]
-        private static bool ValidateCopyFromMenu()
-        {
-            return !EditorApplication.isPlayingOrWillChangePlaymode;
-        }
-
         [MenuItem(PlayContextMenuPath, false, 0)]
         private static void StartFromContext(MenuCommand command)
         {
@@ -69,18 +53,6 @@ namespace marble810.MarbleAvatarTools.PlayModeTools
 
         [MenuItem(PlayContextMenuPath, true)]
         private static bool ValidateStartFromContext(MenuCommand command)
-        {
-            return !EditorApplication.isPlayingOrWillChangePlaymode && command.context is GameObject;
-        }
-
-        [MenuItem(CopyContextMenuPath, false, 1)]
-        private static void CopyFromContext(MenuCommand command)
-        {
-            CopyToHierarchyForSelection(command.context as GameObject);
-        }
-
-        [MenuItem(CopyContextMenuPath, true)]
-        private static bool ValidateCopyFromContext(MenuCommand command)
         {
             return !EditorApplication.isPlayingOrWillChangePlaymode && command.context is GameObject;
         }
@@ -125,35 +97,6 @@ namespace marble810.MarbleAvatarTools.PlayModeTools
                 CleanupSession();
                 ShowDialog("进入 Play 失败", "编辑器未能进入 Play Mode，临时会话已回滚。", "确定");
             }
-        }
-
-        private static void CopyToHierarchyForSelection(GameObject selectedObject)
-        {
-            const string undoName = "Copy Avatar Without VRCFury";
-
-            if (EditorApplication.isPlayingOrWillChangePlaymode)
-            {
-                ShowDialog("无法复制", "当前已经处于进入 Play 的流程中。", "确定");
-                return;
-            }
-
-            if (!TryPrepareClone(selectedObject, CopyCloneSuffix, out var avatarRoot, out var clone, out var removedCount))
-            {
-                return;
-            }
-
-            Undo.IncrementCurrentGroup();
-            var undoGroup = Undo.GetCurrentGroup();
-            Undo.SetCurrentGroupName(undoName);
-            Undo.RegisterFullObjectHierarchyUndo(avatarRoot, undoName);
-            Undo.RegisterCreatedObjectUndo(clone, undoName);
-
-            avatarRoot.SetActive(false);
-            clone.SetActive(true);
-            Selection.activeGameObject = clone;
-            Undo.CollapseUndoOperations(undoGroup);
-
-            Debug.Log($"Play Without VRCFury: copied clone '{clone.name}', removed {removedCount} VRCFury component(s), disabled original avatar '{avatarRoot.name}'.");
         }
 
         private static bool TryPrepareClone(
@@ -261,7 +204,6 @@ namespace marble810.MarbleAvatarTools.PlayModeTools
             if ((gameObject.hideFlags & HideFlags.HideAndDontSave) != 0) return false;
             if (string.Equals(gameObject.tag, "EditorOnly", StringComparison.Ordinal)) return false;
             if (gameObject.name.EndsWith(PlayCloneSuffix, StringComparison.Ordinal)) return false;
-            if (gameObject.name.EndsWith(CopyCloneSuffix, StringComparison.Ordinal)) return false;
             return true;
         }
 

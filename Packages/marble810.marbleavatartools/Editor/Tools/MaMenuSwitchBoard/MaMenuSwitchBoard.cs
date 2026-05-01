@@ -34,7 +34,7 @@ namespace marble810.MarbleAvatarTools.MaMenuSwitchBoard
         private Delegate propertyOverridesOnChangeHandler;
         private bool sceneAvatarListManuallyOpened;
 
-        private const string USS_PATH = "Packages/marble810.marbleavatartools/Editor/MaMenuSwitchBoard/MaMenuSwitchBoard.uss";
+        private const string USS_PATH = "Packages/marble810.marbleavatartools/Editor/Tools/MaMenuSwitchBoard/MaMenuSwitchBoard.uss";
         private static StyleSheet ussAsset;
 
         [MenuItem("MarbleAvatarTools/MaMenuSwitchBoard")]

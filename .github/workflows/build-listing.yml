@@ -1,0 +1,66 @@
+name: Build Repo Listing
+
+env:
+  listPublishDirectory: Website
+  pathToCi: ci
+  currentPackageName: marble810.marbleavatartools
+
+on:
+  workflow_dispatch:
+  release:
+    types:
+      - published
+      - created
+      - edited
+      - unpublished
+      - deleted
+      - released
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build-listing:
+    name: build-listing
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout local repository
+        uses: actions/checkout@v4
+
+      - name: Checkout package listing automation
+        uses: actions/checkout@v4
+        with:
+          repository: vrchat-community/package-list-action
+          path: ${{ env.pathToCi }}
+          clean: false
+
+      - name: Restore package listing cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            ${{ env.pathToCi }}/.nuke/temp
+            ~/.nuget/packages
+          key: ${{ runner.os }}-${{ hashFiles('ci/**/global.json', 'ci/**/*.csproj') }}
+
+      - name: Build package version listing
+        run: ${{ env.pathToCi }}/build.cmd BuildRepoListing --root ${{ env.pathToCi }} --list-publish-directory $GITHUB_WORKSPACE/${{ env.listPublishDirectory }} --current-package-name ${{ env.currentPackageName }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup GitHub Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: ${{ env.listPublishDirectory }}
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

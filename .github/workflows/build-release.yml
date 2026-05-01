@@ -1,0 +1,91 @@
+name: Build Release
+
+on:
+  push:
+    tags:
+      - '*.*.*'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    env:
+      PACKAGE_PATH: Packages/marble810.marbleavatartools
+      CHANGELOG_PATH: CHANGELOG.md
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Resolve release metadata
+        id: meta
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          version="${GITHUB_REF_NAME}"
+          if [[ ! "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "Tag '$version' is not a valid SemVer tag." >&2
+            exit 1
+          fi
+
+          package_name="$(jq -r '.name' "$PACKAGE_PATH/package.json")"
+          package_version="$(jq -r '.version' "$PACKAGE_PATH/package.json")"
+
+          if [[ "$package_version" != "$version" ]]; then
+            echo "Tag '$version' does not match package.json version '$package_version'." >&2
+            exit 1
+          fi
+
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "package_name=$package_name" >> "$GITHUB_OUTPUT"
+          echo "zip_file=${package_name}-${version}.zip" >> "$GITHUB_OUTPUT"
+          echo "unity_package=${package_name}-${version}.unitypackage" >> "$GITHUB_OUTPUT"
+
+      - name: Extract release notes from CHANGELOG
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          awk -v version="${{ steps.meta.outputs.version }}" '
+            $0 ~ "^## \\[" version "\\]" { capture=1; next }
+            /^## \[/ && capture { exit }
+            capture { print }
+          ' "$CHANGELOG_PATH" > release-notes.md
+
+          if ! grep -q '[^[:space:]]' release-notes.md; then
+            echo "No release notes were found for version ${{ steps.meta.outputs.version }} in $CHANGELOG_PATH." >&2
+            exit 1
+          fi
+
+      - name: Create package zip
+        working-directory: ${{ env.PACKAGE_PATH }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          zip -r "${GITHUB_WORKSPACE}/${{ steps.meta.outputs.zip_file }}" .
+
+      - name: Collect package meta files
+        shell: bash
+        run: |
+          set -euo pipefail
+          find "$PACKAGE_PATH" -name '*.meta' | sort > metaList
+
+      - name: Create unitypackage
+        uses: pCYSl5EDgo/create-unitypackage@v1.2.3
+        with:
+          package-path: ${{ steps.meta.outputs.unity_package }}
+          include-files: metaList
+
+      - name: Publish GitHub release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: ${{ steps.meta.outputs.package_name }} ${{ steps.meta.outputs.version }}
+          tag_name: ${{ steps.meta.outputs.version }}
+          body_path: release-notes.md
+          files: |
+            ${{ steps.meta.outputs.zip_file }}
+            ${{ steps.meta.outputs.unity_package }}
+            ${{ env.PACKAGE_PATH }}/package.json

@@ -10,3 +10,5 @@
 
 # Machine-specific development environment.
 /Script/dev.env
+
+/Docs/local

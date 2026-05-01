@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{ listingInfo.Name }}</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <main class="shell">
+    <section class="hero">
+      <p class="eyebrow">VRChat VPM Listing</p>
+      <h1>{{ listingInfo.Name }}</h1>
+      {{~ if listingInfo.Description; ~}}
+      <p class="lede">{{ listingInfo.Description }}</p>
+      {{~ end; ~}}
+      <div class="hero-actions">
+        <input id="listingUrl" class="listing-url" type="text" readonly value="{{ listingInfo.Url }}">
+        <button id="copyListingUrl" type="button">Copy URL</button>
+        <button id="addListingToVcc" type="button">Add to VCC</button>
+      </div>
+      <div class="hero-meta">
+        {{~ if listingInfo.Author.Name; ~}}
+        <span>Published by <a href="{{ listingInfo.Author.Url }}" target="_blank" rel="noreferrer">{{ listingInfo.Author.Name }}</a></span>
+        {{~ end; ~}}
+        {{~ if listingInfo.InfoLink.Url; ~}}
+        <span><a href="{{ listingInfo.InfoLink.Url }}" target="_blank" rel="noreferrer">{{ if listingInfo.InfoLink.Text; listingInfo.InfoLink.Text; else; "More Info"; end; }}</a></span>
+        {{~ end; ~}}
+      </div>
+    </section>
+
+    <section class="toolbar">
+      <label class="search-field">
+        <span>Search packages</span>
+        <input id="packageSearch" type="search" placeholder="Name, id, keyword...">
+      </label>
+    </section>
+
+    <section id="packageGrid" class="package-grid">
+      {{~ for package in packages ~}}
+      <article class="package-card" data-search="{{ package.Name }} {{ package.DisplayName }} {{ package.Description }} {{ for keyword in package.Keywords; keyword; ' '; end; }}">
+        <div class="card-head">
+          <div>
+            <h2>{{ if package.DisplayName; package.DisplayName; else; package.Name; end; }}</h2>
+            <p class="package-id">{{ package.Name }}</p>
+          </div>
+          <div class="version-pill">v{{ package.Version }}</div>
+        </div>
+
+        {{~ if package.Description; ~}}
+        <p class="package-description">{{ package.Description }}</p>
+        {{~ end; ~}}
+
+        <dl class="package-meta">
+          <div>
+            <dt>Author</dt>
+            <dd>{{ if package.Author.Name; package.Author.Name; else; "Unknown"; end; }}</dd>
+          </div>
+          <div>
+            <dt>License</dt>
+            <dd>{{ if package.License; package.License; else; "See package.json"; end; }}</dd>
+          </div>
+        </dl>
+
+        {{~ if package.Keywords.size > 0; ~}}
+        <div class="keyword-row">
+          {{~ for keyword in package.Keywords ~}}
+          <span class="keyword">{{ keyword }}</span>
+          {{~ end ~}}
+        </div>
+        {{~ end; ~}}
+
+        <div class="card-actions">
+          <button class="copy-package-id" type="button" data-package-id="{{ package.Name }}">Copy Package ID</button>
+          <a class="download-link" href="{{ package.ZipUrl }}" target="_blank" rel="noreferrer">Download ZIP</a>
+        </div>
+      </article>
+      {{~ end ~}}
+    </section>
+  </main>
+
+  <script type="module" src="app.js"></script>
+</body>
+</html>

@@ -140,6 +140,17 @@ function New-VersionTemplate {
 "@
 }
 
+function New-ChangelogSkeleton {
+    return @"
+# Changelog
+
+All notable changes to this project will be documented in this file.
+
+The format is based on Keep a Changelog,
+and this project adheres to Semantic Versioning.
+"@
+}
+
 function Add-VersionSection {
     param(
         [Parameter(Mandatory = $true)]
@@ -243,14 +254,14 @@ function Assert-TagAvailable {
     }
 }
 
-if (-not (Test-Path -LiteralPath $changelogPath)) {
-    throw "CHANGELOG not found at $changelogPath"
-}
-
 $bumpChoice = Get-ValidatedBump
 $currentVersion = Read-PackageVersion
 $targetVersion = Get-NextVersion -Version $currentVersion -VersionBump $bumpChoice
-$changelogContent = Get-Content -LiteralPath $changelogPath -Raw
+$changelogContent = if (Test-Path -LiteralPath $changelogPath) {
+    Get-Content -LiteralPath $changelogPath -Raw
+} else {
+    (New-ChangelogSkeleton).TrimEnd()
+}
 $versionSection = Get-VersionSection -ChangelogContent $changelogContent -Version $targetVersion
 
 if (-not $versionSection) {

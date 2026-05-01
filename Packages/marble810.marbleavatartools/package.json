@@ -1,7 +1,7 @@
 {
   "name": "marble810.marbleavatartools",
   "displayName": "Marble Avatar Tools",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "unity": "2019.4",
   "description": "Custom Unity Editor Scripts for VRChat Avatar editing and optimization. Tools for streamlining avatar creation process including PhysBone collider batch setup and other avatar optimization utilities.",
   "keywords": [

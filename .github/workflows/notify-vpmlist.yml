@@ -1,0 +1,126 @@
+name: Notify VPM List
+
+env:
+  TARGET_REPOSITORY: marble810/vpmlist
+  PACKAGE_MANIFEST_PATH: Packages/marble810.marbleavatartools/package.json
+  DISPATCH_TOKEN_NAME: VPMLIST_DISPATCH_TOKEN
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Version tag to dispatch. Defaults to the latest published release.
+        required: false
+        type: string
+  workflow_run:
+    workflows:
+      - Build Release
+    types:
+      - completed
+
+permissions:
+  contents: read
+
+jobs:
+  dispatch:
+    name: dispatch
+    if: >-
+      github.event_name != 'workflow_run' ||
+      github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Resolve release metadata
+        id: meta
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+
+          semver_pattern='^[0-9]+\.[0-9]+\.[0-9]+$'
+
+          if [[ "${GITHUB_EVENT_NAME}" == "workflow_dispatch" ]]; then
+            input_version="${{ inputs.version }}"
+            if [[ -n "$input_version" ]]; then
+              tag="$input_version"
+            else
+              tag="$(gh api repos/${GITHUB_REPOSITORY}/releases/latest --jq '.tag_name')"
+            fi
+          else
+            head_sha="${{ github.event.workflow_run.head_sha }}"
+            git fetch --force --tags origin
+            mapfile -t semver_tags < <(git tag --points-at "$head_sha" | grep -E "$semver_pattern" | sort -V)
+
+            if [[ ${#semver_tags[@]} -eq 0 ]]; then
+              echo "No SemVer tag points at workflow run SHA $head_sha." >&2
+              exit 1
+            fi
+
+            tag="${semver_tags[${#semver_tags[@]}-1]}"
+          fi
+
+          if [[ ! "$tag" =~ $semver_pattern ]]; then
+            echo "Tag '$tag' is not a supported SemVer tag." >&2
+            exit 1
+          fi
+
+          git fetch --force --tags origin
+          if ! git rev-parse -q --verify "refs/tags/$tag" >/dev/null; then
+            echo "Tag '$tag' was not found in origin." >&2
+            exit 1
+          fi
+
+          package_name="$(jq -r '.name' "$PACKAGE_MANIFEST_PATH")"
+          release_url="$(gh api repos/${GITHUB_REPOSITORY}/releases/tags/$tag --jq '.html_url')"
+          release_id="$(gh api repos/${GITHUB_REPOSITORY}/releases/tags/$tag --jq '.id')"
+          head_sha="$(git rev-list -n 1 "refs/tags/$tag")"
+
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+          echo "version=$tag" >> "$GITHUB_OUTPUT"
+          echo "package_name=$package_name" >> "$GITHUB_OUTPUT"
+          echo "release_url=$release_url" >> "$GITHUB_OUTPUT"
+          echo "release_id=$release_id" >> "$GITHUB_OUTPUT"
+          echo "head_sha=$head_sha" >> "$GITHUB_OUTPUT"
+
+      - name: Validate dispatch token
+        shell: bash
+        run: |
+          if [[ -z "${{ secrets[env.DISPATCH_TOKEN_NAME] }}" ]]; then
+            echo "Missing secret VPMLIST_DISPATCH_TOKEN." >&2
+            exit 1
+          fi
+
+      - name: Dispatch repository event
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets[env.DISPATCH_TOKEN_NAME] }}
+        run: |
+          gh api repos/${{ env.TARGET_REPOSITORY }}/dispatches \
+            -X POST \
+            -f event_type=upstream-package-released \
+            -F client_payload[source_repository]="${GITHUB_REPOSITORY}" \
+            -F client_payload[source_workflow]="Notify VPM List" \
+            -F client_payload[source_run_id]="${GITHUB_RUN_ID}" \
+            -F client_payload[package_name]="${{ steps.meta.outputs.package_name }}" \
+            -F client_payload[version]="${{ steps.meta.outputs.version }}" \
+            -F client_payload[tag]="${{ steps.meta.outputs.tag }}" \
+            -F client_payload[release_id]="${{ steps.meta.outputs.release_id }}" \
+            -F client_payload[release_url]="${{ steps.meta.outputs.release_url }}" \
+            -F client_payload[head_sha]="${{ steps.meta.outputs.head_sha }}"
+
+      - name: Summarize dispatch
+        shell: bash
+        run: |
+          {
+            echo "## Dispatched VPM list refresh"
+            echo
+            echo "- Target repository: ${{ env.TARGET_REPOSITORY }}"
+            echo "- Package: ${{ steps.meta.outputs.package_name }}"
+            echo "- Version: ${{ steps.meta.outputs.version }}"
+            echo "- Release: ${{ steps.meta.outputs.release_url }}"
+          } >> "$GITHUB_STEP_SUMMARY"

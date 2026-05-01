@@ -3,10 +3,15 @@ name: Build Repo Listing
 env:
   listPublishDirectory: Website
   pathToCi: ci
-  currentPackageName: marble810.marbleavatartools
+  currentPackageName: marble810.marbleavatartoolbox
 
 on:
   workflow_dispatch:
+  workflow_run:
+    workflows:
+      - Build Release
+    types:
+      - completed
   release:
     types:
       - published
@@ -28,6 +33,9 @@ concurrency:
 jobs:
   build-listing:
     name: build-listing
+    if: >-
+      github.event_name != 'workflow_run' ||
+      github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout local repository

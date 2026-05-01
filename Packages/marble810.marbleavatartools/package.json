@@ -1,29 +1,22 @@
 {
-  "name": "marble810.marbleavatartools",
-  "displayName": "Marble Avatar Tools",
+  "name": "marble810.marbleavatartoolbox",
+  "displayName": "Marble Avatar Toolbox",
   "version": "1.0.1",
   "unity": "2019.4",
-  "description": "Custom Unity Editor Scripts for VRChat Avatar editing and optimization. Tools for streamlining avatar creation process including PhysBone collider batch setup and other avatar optimization utilities.",
+  "description": "Marble的改模工具合集，详情请看GitHub仓库：https://github.com/Marble810/MarbleAvatarToolbox",
   "keywords": [
     "vrchat",
     "avatar",
     "editor",
     "tools",
-    "optimization",
     "physbone",
-    "colliders"
+    "colliders",
+    "animation"
   ],
   "author": {
-    "name": "Marble810",
-    "url": ""
+    "name": "marble810",
+    "url": "https://github.com/Marble810"
   },
   "dependencies": {
-  },
-  "samples": [
-    {
-      "displayName": "PhysBone Collider Batch Setup",
-      "description": "Example usage of the PhysBone collider batch setup tool",
-      "path": "Samples~/PhysBoneColliderSetup"
-    }
-  ]
+  }
 }

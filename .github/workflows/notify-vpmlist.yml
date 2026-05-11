@@ -2,7 +2,7 @@ name: Notify VPM List
 
 env:
   TARGET_REPOSITORY: marble810/vpmlist
-  PACKAGE_MANIFEST_PATH: Packages/marble810.marbleavatartools/package.json
+  PACKAGE_MANIFEST_PATH: Packages/marble810.marbleavatartoolbox/package.json
   DISPATCH_TOKEN_NAME: VPMLIST_DISPATCH_TOKEN
 
 on:

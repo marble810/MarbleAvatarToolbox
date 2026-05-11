@@ -55,13 +55,13 @@ function Resolve-LinkTargetPath {
 }
 
 try {
-	$sourcePackagePath = Join-Path (Split-Path -Parent $PSScriptRoot) 'Packages\marble810.marbleavatartools'
+	$sourcePackagePath = Join-Path (Split-Path -Parent $PSScriptRoot) 'Packages\marble810.marbleavatartoolbox'
 	if (-not (Test-Path -LiteralPath $sourcePackagePath -PathType Container)) {
 		throw "Source package directory was not found: $sourcePackagePath"
 	}
 
 	$sourcePackagePath = [System.IO.Path]::GetFullPath((Resolve-Path -LiteralPath $sourcePackagePath).ProviderPath).TrimEnd([char]'\', [char]'/')
-	$targetPackagePath = Join-Path (Get-UnityPackagesPath) 'marble810.marbleavatartools'
+	$targetPackagePath = Join-Path (Get-UnityPackagesPath) 'marble810.marbleavatartoolbox'
 	$targetItem = Get-Item -LiteralPath $targetPackagePath -Force -ErrorAction SilentlyContinue
 
 	if ($null -ne $targetItem) {

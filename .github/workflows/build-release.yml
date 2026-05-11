@@ -11,7 +11,7 @@ jobs:
     permissions:
       contents: write
     env:
-      PACKAGE_PATH: Packages/marble810.marbleavatartools
+      PACKAGE_PATH: Packages/marble810.marbleavatartoolbox
       CHANGELOG_PATH: CHANGELOG.md
     steps:
       - name: Checkout repository

@@ -7,12 +7,14 @@ using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.UIElements;
 using nadena.dev.modular_avatar.core;
+using nadena.dev.modular_avatar.core.menu;
 using nadena.dev.modular_avatar.core.editor;
 using System.Collections.Immutable;
 using UnityEditor.UIElements;
 using VRC.SDK3.Avatars.ScriptableObjects;
+using marble810.marbleavatartoolbox.components;
 
-namespace marble810.MarbleAvatarTools.MaMenuSwitchBoard
+namespace marble810.MarbleAvatarToolbox.MaMenuSwitchBoard
 {
     public class MaMenuSwitchBoard : EditorWindow
     {
@@ -21,9 +23,12 @@ namespace marble810.MarbleAvatarTools.MaMenuSwitchBoard
         private Button showSceneAvatarListButton;
         private ListView sceneAvatarListView;
         private ListView menuItemsListView;
+        private Toggle showEditorOnlyReactiveToggle;
         private List<GameObject> sceneAvatars = new List<GameObject>();
         private List<MenuItemNode> allMenuItems = new List<MenuItemNode>();
         private List<MenuItemNode> visibleMenuItems = new List<MenuItemNode>();
+        private readonly HashSet<GameObject> favoriteMenuItemObjects = new HashSet<GameObject>();
+        private MaMenuSwitchBoardAvatarState currentAvatarFavoriteStore;
         private Button clearAllButton;
         private Button focusAvatarButton;
         private Button refreshButton;
@@ -33,11 +38,13 @@ namespace marble810.MarbleAvatarTools.MaMenuSwitchBoard
         private Delegate menuItemOverridesOnChangeHandler;
         private Delegate propertyOverridesOnChangeHandler;
         private bool sceneAvatarListManuallyOpened;
+        private bool suppressSceneAvatarRefresh;
 
-        private const string USS_PATH = "Packages/marble810.marbleavatartools/Editor/Tools/MaMenuSwitchBoard/MaMenuSwitchBoard.uss";
+        private const string USS_PATH = "Packages/marble810.marbleavatartoolbox/Editor/Tools/MaMenuSwitchBoard/MaMenuSwitchBoard.uss";
+        private const string EDITOR_ONLY_TAG = "EditorOnly";
         private static StyleSheet ussAsset;
 
-        [MenuItem("MarbleAvatarTools/MaMenuSwitchBoard")]
+        [MenuItem("MarbleAvatarToolbox/MaMenuSwitchBoard")]
         public static void ShowWindow()
         {
             var window = GetWindow<MaMenuSwitchBoard>();
@@ -48,7 +55,7 @@ namespace marble810.MarbleAvatarTools.MaMenuSwitchBoard
         private void OnEnable()
         {
             Selection.selectionChanged += OnSelectionChanged;
-            EditorApplication.hierarchyChanged += RefreshSceneAvatarList;
+            EditorApplication.hierarchyChanged += OnHierarchyChanged;
             EditorApplication.update += OnEditorUpdate;
             EditorSceneManager.activeSceneChangedInEditMode += OnActiveSceneChangedInEditMode;
             SubscribeToOverrideChanges();
@@ -63,10 +70,16 @@ namespace marble810.MarbleAvatarTools.MaMenuSwitchBoard
         private void OnDisable()
         {
             Selection.selectionChanged -= OnSelectionChanged;
-            EditorApplication.hierarchyChanged -= RefreshSceneAvatarList;
+            EditorApplication.hierarchyChanged -= OnHierarchyChanged;
             EditorApplication.update -= OnEditorUpdate;
             EditorSceneManager.activeSceneChangedInEditMode -= OnActiveSceneChangedInEditMode;
             UnsubscribeFromOverrideChanges();
+        }
+
+        private void OnHierarchyChanged()
+        {
+            if (suppressSceneAvatarRefresh) return;
+            RefreshSceneAvatarList();
         }
 
         public void CreateGUI()
@@ -139,6 +152,16 @@ namespace marble810.MarbleAvatarTools.MaMenuSwitchBoard
             clearAllButton = new Button(OnClearAllOverrides);
             clearAllButton.text = "Clear All Overrides";
             buttonBar.Add(clearAllButton);
+
+            showEditorOnlyReactiveToggle = new Toggle("显示 EditorOnly 响应式内容");
+            showEditorOnlyReactiveToggle.AddToClassList("show-editor-only-toggle");
+            showEditorOnlyReactiveToggle.value = false;
+            showEditorOnlyReactiveToggle.RegisterValueChangedCallback(_ =>
+            {
+                UpdateVisibleMenuItems();
+                menuItemsListView?.Rebuild();
+            });
+            toolbar.Add(showEditorOnlyReactiveToggle);
 
             rootVisualElement.Add(toolbar);
 
@@ -359,7 +382,8 @@ namespace marble810.MarbleAvatarTools.MaMenuSwitchBoard
 
         private void LoadMenuItems(GameObject avatar)
         {
-            allMenuItems = MenuItemDiscoveryHelper.DiscoverMenuItems(avatar);
+            LoadFavoriteMenuItemObjects(avatar);
+            allMenuItems = MenuItemDiscoveryHelper.DiscoverMenuItems(avatar, favoriteMenuItemObjects);
             UpdateVisibleMenuItems();
             menuItemsListView?.Rebuild();
             RequestRefresh();
@@ -369,6 +393,8 @@ namespace marble810.MarbleAvatarTools.MaMenuSwitchBoard
         {
             allMenuItems.Clear();
             visibleMenuItems.Clear();
+            favoriteMenuItemObjects.Clear();
+            currentAvatarFavoriteStore = null;
             menuItemsListView?.Rebuild();
             RequestRefresh();
         }
@@ -376,13 +402,56 @@ namespace marble810.MarbleAvatarTools.MaMenuSwitchBoard
         private void UpdateVisibleMenuItems()
         {
             visibleMenuItems.Clear();
+
+            var favoriteNodes = new List<MenuItemNode>();
+            var regularNodes = new List<MenuItemNode>();
             foreach (var node in allMenuItems)
             {
-                if (node.isVisible)
-                {
-                    visibleMenuItems.Add(node);
-                }
+                CollectVisibleNodes(node, favoriteNodes, regularNodes, 0, false);
             }
+
+            visibleMenuItems.AddRange(favoriteNodes);
+            if (favoriteNodes.Count > 0 && regularNodes.Count > 0)
+            {
+                visibleMenuItems.Add(MenuItemNode.CreateDivider());
+            }
+
+            visibleMenuItems.AddRange(regularNodes);
+        }
+
+        private void CollectVisibleNodes(
+            MenuItemNode node,
+            List<MenuItemNode> favoriteNodes,
+            List<MenuItemNode> regularNodes,
+            int depth,
+            bool ancestorHiddenByEditorOnly)
+        {
+            if (node == null) return;
+
+            var hiddenByEditorOnly = ancestorHiddenByEditorOnly || IsEditorOnlyNodeHidden(node);
+            if (hiddenByEditorOnly) return;
+
+            node.depth = depth;
+            if (node.isFavorite)
+            {
+                favoriteNodes.Add(node);
+            }
+            else if (node.isVisible)
+            {
+                regularNodes.Add(node);
+            }
+
+            foreach (var child in node.children)
+            {
+                CollectVisibleNodes(child, favoriteNodes, regularNodes, depth + 1, hiddenByEditorOnly);
+            }
+        }
+
+        private bool IsEditorOnlyNodeHidden(MenuItemNode node)
+        {
+            if (node == null) return false;
+            if (showEditorOnlyReactiveToggle?.value == true) return false;
+            return node.isReactiveContent && node.isEditorOnlyReactiveContent;
         }
 
         private GameObject FindAvatarInSelection(GameObject selected)
@@ -574,6 +643,30 @@ namespace marble810.MarbleAvatarTools.MaMenuSwitchBoard
             label.style.unityTextAlign = TextAnchor.MiddleLeft;
             container.Add(label);
 
+            var dividerLine = new VisualElement();
+            dividerLine.AddToClassList("favorites-divider-line");
+            dividerLine.style.display = DisplayStyle.None;
+            container.Add(dividerLine);
+
+            var favoriteButton = new Button();
+            favoriteButton.AddToClassList("favorite-button");
+            favoriteButton.style.width = 20;
+            favoriteButton.style.height = 18;
+            favoriteButton.style.paddingLeft = 0;
+            favoriteButton.style.paddingRight = 0;
+            favoriteButton.style.paddingTop = 0;
+            favoriteButton.style.paddingBottom = 0;
+            favoriteButton.style.marginRight = 4;
+            favoriteButton.style.flexShrink = 0;
+            favoriteButton.clicked += () =>
+            {
+                if (container.userData is MenuItemNode node)
+                {
+                    ToggleFavorite(node);
+                }
+            };
+            container.Add(favoriteButton);
+
             var spacer = new VisualElement();
             spacer.AddToClassList("spacer");
             spacer.style.flexGrow = 1;
@@ -598,10 +691,33 @@ namespace marble810.MarbleAvatarTools.MaMenuSwitchBoard
             var indent = container.Q(className: "menu-item-indent");
             var icon = container.Q(className: "menu-item-icon");
             var label = container.Q<Label>(className: "menu-item-label");
+            var dividerLine = container.Q(className: "favorites-divider-line");
+            var favoriteButton = container.Q<Button>(className: "favorite-button");
+            var spacer = container.Q(className: "spacer");
             var overrideController = container.Q<StateOverrideController>();
             overrideController.userData = node;
 
-            indent.style.width = node.depth * 14;
+            if (node.isDivider)
+            {
+                indent.style.width = 0;
+                foldoutButton.style.display = DisplayStyle.None;
+                icon.style.display = DisplayStyle.None;
+                label.text = "Favorites";
+                label.AddToClassList("favorites-divider-label");
+                dividerLine.style.display = DisplayStyle.Flex;
+                favoriteButton.style.display = DisplayStyle.None;
+                spacer.style.display = DisplayStyle.None;
+                overrideController.style.display = DisplayStyle.None;
+                container.AddToClassList("favorites-divider-row");
+                return;
+            }
+
+            label.RemoveFromClassList("favorites-divider-label");
+            dividerLine.style.display = DisplayStyle.None;
+            spacer.style.display = DisplayStyle.Flex;
+            container.RemoveFromClassList("favorites-divider-row");
+
+            indent.style.width = node.isFavorite ? 0 : node.depth * 14;
 
             if (node.children.Count > 0)
             {
@@ -616,6 +732,23 @@ namespace marble810.MarbleAvatarTools.MaMenuSwitchBoard
             if (node.menuItem != null)
             {
                 label.text = !string.IsNullOrEmpty(node.menuItem.label) ? node.menuItem.label : node.menuItem.gameObject.name;
+            }
+            else
+            {
+                label.text = node.displayName ?? string.Empty;
+            }
+
+            if (node.isReactiveContent)
+            {
+                favoriteButton.style.display = DisplayStyle.Flex;
+                favoriteButton.text = node.isFavorite ? "★" : "☆";
+                favoriteButton.tooltip = node.isFavorite ? "取消收藏" : "收藏并置顶";
+            }
+            else
+            {
+                favoriteButton.style.display = DisplayStyle.None;
+                favoriteButton.text = string.Empty;
+                favoriteButton.tooltip = string.Empty;
             }
 
             UpdateOverrideControllerState(overrideController);
@@ -681,6 +814,129 @@ namespace marble810.MarbleAvatarTools.MaMenuSwitchBoard
                     ToggleChildrenVisibility(child, false);
                 }
             }
+        }
+
+        private void ToggleFavorite(MenuItemNode node)
+        {
+            if (node == null || node.isDivider || !node.isReactiveContent || node.menuItem == null) return;
+
+            var favoriteTarget = node.menuItem.gameObject;
+            if (favoriteTarget == null) return;
+            var currentAvatar = avatarField?.value as GameObject;
+
+            node.isFavorite = !node.isFavorite;
+            if (node.isFavorite)
+            {
+                favoriteMenuItemObjects.Add(favoriteTarget);
+            }
+            else
+            {
+                favoriteMenuItemObjects.Remove(favoriteTarget);
+            }
+
+            suppressSceneAvatarRefresh = true;
+            try
+            {
+                SaveFavoriteMenuItemObjects(currentAvatar);
+            }
+            finally
+            {
+                suppressSceneAvatarRefresh = false;
+            }
+
+            RefreshSceneAvatarList();
+            if (currentAvatar != null && avatarField != null)
+            {
+                avatarField.SetValueWithoutNotify(currentAvatar);
+                UpdateSceneAvatarSelection(currentAvatar);
+            }
+
+            UpdateFocusAvatarButtonState();
+            UpdateSceneAvatarListVisibility();
+            UpdateVisibleMenuItems();
+            menuItemsListView?.Rebuild();
+        }
+
+        private void LoadFavoriteMenuItemObjects(GameObject avatar)
+        {
+            favoriteMenuItemObjects.Clear();
+            currentAvatarFavoriteStore = FindFavoriteStore(avatar);
+            if (currentAvatarFavoriteStore == null) return;
+
+            foreach (var favoriteObject in currentAvatarFavoriteStore.favoriteMenuItemObjects)
+            {
+                if (favoriteObject != null)
+                {
+                    favoriteMenuItemObjects.Add(favoriteObject);
+                }
+            }
+        }
+
+        private void SaveFavoriteMenuItemObjects(GameObject avatar)
+        {
+            if (avatar == null) return;
+
+            if (favoriteMenuItemObjects.Count == 0)
+            {
+                if (currentAvatarFavoriteStore?.gameObject != null)
+                {
+                    var storageObject = currentAvatarFavoriteStore.gameObject;
+                    currentAvatarFavoriteStore = null;
+                    Undo.DestroyObjectImmediate(storageObject);
+                    MarkSceneDirty(avatar.scene);
+                }
+
+                return;
+            }
+
+            var store = EnsureFavoriteStore(avatar);
+            if (store == null) return;
+
+            Undo.RecordObject(store, "Update MA Menu SwitchBoard Favorites");
+            store.favoriteMenuItemObjects.Clear();
+            foreach (var favoriteObject in favoriteMenuItemObjects
+                .Where(gameObject => gameObject != null)
+                .OrderBy(GetHierarchyPath))
+            {
+                store.favoriteMenuItemObjects.Add(favoriteObject);
+            }
+
+            EditorUtility.SetDirty(store);
+            currentAvatarFavoriteStore = store;
+            MarkSceneDirty(store.gameObject.scene);
+        }
+
+        private static MaMenuSwitchBoardAvatarState FindFavoriteStore(GameObject avatar)
+        {
+            if (avatar == null) return null;
+
+            return avatar.GetComponentsInChildren<MaMenuSwitchBoardAvatarState>(true)
+                .FirstOrDefault(store => store != null && store.transform.parent == avatar.transform);
+        }
+
+        private static MaMenuSwitchBoardAvatarState EnsureFavoriteStore(GameObject avatar)
+        {
+            var existingStore = FindFavoriteStore(avatar);
+            if (existingStore != null) return existingStore;
+
+            var storageObject = new GameObject(MaMenuSwitchBoardAvatarState.StorageObjectName);
+            storageObject.tag = EDITOR_ONLY_TAG;
+            Undo.RegisterCreatedObjectUndo(storageObject, "Create MA Menu SwitchBoard Avatar State");
+            Undo.SetTransformParent(storageObject.transform, avatar.transform, "Create MA Menu SwitchBoard Avatar State");
+            storageObject.transform.localPosition = Vector3.zero;
+            storageObject.transform.localRotation = Quaternion.identity;
+            storageObject.transform.localScale = Vector3.one;
+
+            var store = Undo.AddComponent<MaMenuSwitchBoardAvatarState>(storageObject);
+            EditorUtility.SetDirty(store);
+            MarkSceneDirty(avatar.scene);
+            return store;
+        }
+
+        private static void MarkSceneDirty(UnityEngine.SceneManagement.Scene scene)
+        {
+            if (!scene.IsValid() || !scene.isLoaded) return;
+            EditorSceneManager.MarkSceneDirty(scene);
         }
 
         private void OnStateOverrideChanged(MenuItemNode node, bool? state)
@@ -801,74 +1057,360 @@ namespace marble810.MarbleAvatarTools.MaMenuSwitchBoard
         {
             public ModularAvatarMenuItem menuItem;
             public string parameterName;
+            public string displayName;
             public List<MenuItemNode> children = new List<MenuItemNode>();
             public int depth;
             public bool isExpanded = true;
             public bool isVisible = true;
+            public bool isReactiveContent;
+            public bool isEditorOnlyReactiveContent;
+            public bool isFavorite;
+            public bool isDivider;
+
+            public static MenuItemNode CreateDivider()
+            {
+                return new MenuItemNode
+                {
+                    isDivider = true,
+                    isVisible = true
+                };
+            }
         }
 
         public static class MenuItemDiscoveryHelper
         {
-            public static List<MenuItemNode> DiscoverMenuItems(GameObject avatar)
-            {
-                var allMenuItems = avatar.GetComponentsInChildren<ModularAvatarMenuItem>(true);
-                var transformToMenuItem = new Dictionary<Transform, ModularAvatarMenuItem>();
-                var allNodes = new List<MenuItemNode>();
+            private static readonly object RootMenuKey = new object();
+            private const string MENU_INSTALL_TARGET_TYPE = "nadena.dev.modular_avatar.core.ModularAvatarMenuInstallTarget";
 
-                foreach (var item in allMenuItems)
+            public static List<MenuItemNode> DiscoverMenuItems(GameObject avatar, ISet<GameObject> favoriteMenuItemObjects)
+            {
+                if (avatar == null) return new List<MenuItemNode>();
+
+                var avatarDescriptor = avatar.GetComponent<VRC.SDK3.Avatars.Components.VRCAvatarDescriptor>();
+                if (avatarDescriptor == null) return new List<MenuItemNode>();
+
+                var discovery = new AvatarMenuTreeDiscovery(avatar, favoriteMenuItemObjects);
+                return discovery.Build(avatarDescriptor);
+            }
+
+            private sealed class AvatarMenuTreeDiscovery
+            {
+                private readonly GameObject avatar;
+                private readonly ISet<GameObject> favoriteMenuItemObjects;
+                private readonly Dictionary<object, List<ModularAvatarMenuInstaller>> installersByTarget =
+                    new Dictionary<object, List<ModularAvatarMenuInstaller>>();
+                private readonly HashSet<ModularAvatarMenuInstaller> redirectedInstallers =
+                    new HashSet<ModularAvatarMenuInstaller>();
+                private readonly HashSet<ModularAvatarMenuInstaller> visitingInstallers =
+                    new HashSet<ModularAvatarMenuInstaller>();
+                private readonly HashSet<VRCExpressionsMenu> visitingMenus = new HashSet<VRCExpressionsMenu>();
+                private readonly HashSet<object> visitingSources = new HashSet<object>();
+
+                public AvatarMenuTreeDiscovery(GameObject avatar, ISet<GameObject> favoriteMenuItemObjects)
                 {
-                    transformToMenuItem[item.transform] = item;
+                    this.avatar = avatar;
+                    this.favoriteMenuItemObjects = favoriteMenuItemObjects;
                 }
 
-                var rootNodes = new List<MenuItemNode>();
-
-                foreach (var item in allMenuItems)
+                public List<MenuItemNode> Build(VRC.SDK3.Avatars.Components.VRCAvatarDescriptor avatarDescriptor)
                 {
-                    var node = new MenuItemNode { menuItem = item };
-                    allNodes.Add(node);
+                    IndexInstallers();
 
-                    Transform parentTransform = item.transform.parent;
-                    bool foundParent = false;
-
-                    while (parentTransform != null)
+                    var rootNodes = new List<MenuItemNode>();
+                    if (avatarDescriptor.expressionsMenu != null)
                     {
-                        if (transformToMenuItem.TryGetValue(parentTransform, out var parentMenuItem))
+                        VisitMenuAsset(avatarDescriptor.expressionsMenu, rootNodes);
+                    }
+
+                    AppendInstallersForTarget(RootMenuKey, rootNodes);
+                    return rootNodes;
+                }
+
+                private void IndexInstallers()
+                {
+                    foreach (var installTarget in GetMenuInstallTargets(avatar))
+                    {
+                        var installer = GetTargetedInstaller(installTarget);
+                        if (installer != null)
                         {
-                            var parentNode = allNodes.FirstOrDefault(n => n.menuItem == parentMenuItem);
-                            if (parentNode != null)
+                            redirectedInstallers.Add(installer);
+                        }
+                    }
+
+                    foreach (var installer in avatar.GetComponentsInChildren<ModularAvatarMenuInstaller>(true))
+                    {
+                        if (installer == null || redirectedInstallers.Contains(installer)) continue;
+
+                        var targetKey = installer.installTargetMenu != null
+                            ? (object)installer.installTargetMenu
+                            : RootMenuKey;
+
+                        if (!installersByTarget.TryGetValue(targetKey, out var installers))
+                        {
+                            installers = new List<ModularAvatarMenuInstaller>();
+                            installersByTarget[targetKey] = installers;
+                        }
+
+                        installers.Add(installer);
+                    }
+                }
+
+                private void VisitMenuAsset(VRCExpressionsMenu menu, List<MenuItemNode> targetNodes)
+                {
+                    if (menu == null || !visitingMenus.Add(menu)) return;
+
+                    try
+                    {
+                        foreach (var control in menu.controls)
+                        {
+                            targetNodes.Add(CreateAssetControlNode(control));
+                        }
+
+                        AppendInstallersForTarget(menu, targetNodes);
+                    }
+                    finally
+                    {
+                        visitingMenus.Remove(menu);
+                    }
+                }
+
+                private void AppendInstallersForTarget(object targetKey, List<MenuItemNode> targetNodes)
+                {
+                    if (!installersByTarget.TryGetValue(targetKey, out var installers)) return;
+
+                    foreach (var installer in installers)
+                    {
+                        VisitInstaller(installer, targetNodes);
+                    }
+                }
+
+                private void VisitInstaller(ModularAvatarMenuInstaller installer, List<MenuItemNode> targetNodes)
+                {
+                    if (installer == null || !visitingInstallers.Add(installer)) return;
+
+                    try
+                    {
+                        var source = GetFirstMenuSource(installer.gameObject);
+                        if (source != null)
+                        {
+                            VisitMenuSource(source, targetNodes);
+                        }
+                        else if (installer.menuToAppend != null)
+                        {
+                            VisitMenuAsset(installer.menuToAppend, targetNodes);
+                        }
+                    }
+                    finally
+                    {
+                        visitingInstallers.Remove(installer);
+                    }
+                }
+
+                private void VisitMenuSource(MenuSource source, List<MenuItemNode> targetNodes)
+                {
+                    if (source == null || !visitingSources.Add(source)) return;
+
+                    try
+                    {
+                        switch (source)
+                        {
+                            case ModularAvatarMenuItem menuItem:
+                                targetNodes.Add(CreateMenuItemNode(menuItem));
+                                break;
+                            case ModularAvatarMenuGroup menuGroup:
+                                VisitChildrenMenuSources(menuGroup.targetObject != null
+                                    ? menuGroup.targetObject
+                                    : menuGroup.gameObject, targetNodes);
+                                break;
+                            case Component component when IsMenuInstallTarget(component):
+                                VisitInstaller(GetTargetedInstaller(component), targetNodes);
+                                break;
+                        }
+                    }
+                    finally
+                    {
+                        visitingSources.Remove(source);
+                    }
+                }
+
+                private void VisitChildrenMenuSources(GameObject rootObject, List<MenuItemNode> targetNodes)
+                {
+                    if (rootObject == null) return;
+
+                    foreach (Transform child in rootObject.transform)
+                    {
+                        var source = GetFirstMenuSource(child.gameObject);
+                        if (source != null)
+                        {
+                            VisitMenuSource(source, targetNodes);
+                        }
+                    }
+                }
+
+                private MenuItemNode CreateMenuItemNode(ModularAvatarMenuItem menuItem)
+                {
+                    var (isReactiveContent, isEditorOnlyReactiveContent) = ClassifyReactiveContent(menuItem);
+                    var node = new MenuItemNode
+                    {
+                        menuItem = menuItem,
+                        displayName = !string.IsNullOrEmpty(menuItem.label) ? menuItem.label : menuItem.gameObject.name,
+                        isReactiveContent = isReactiveContent,
+                        isEditorOnlyReactiveContent = isEditorOnlyReactiveContent,
+                        isFavorite = favoriteMenuItemObjects != null && favoriteMenuItemObjects.Contains(menuItem.gameObject)
+                    };
+
+                    if (menuItem.Control != null &&
+                        menuItem.Control.type == VRCExpressionsMenu.Control.ControlType.SubMenu)
+                    {
+                        switch (menuItem.MenuSource)
+                        {
+                            case SubmenuSource.MenuAsset:
+                                VisitMenuAsset(menuItem.Control.subMenu, node.children);
+                                break;
+                            case SubmenuSource.Children:
                             {
-                                parentNode.children.Add(node);
-                                node.depth = parentNode.depth + 1;
-                                foundParent = true;
+                                var rootObject = menuItem.menuSource_otherObjectChildren != null
+                                    ? menuItem.menuSource_otherObjectChildren
+                                    : menuItem.gameObject;
+                                VisitChildrenMenuSources(rootObject, node.children);
                                 break;
                             }
                         }
-                        parentTransform = parentTransform.parent;
                     }
 
-                    if (!foundParent)
-                    {
-                        rootNodes.Add(node);
-                    }
+                    return node;
                 }
 
-                var flatList = new List<MenuItemNode>();
-                foreach (var root in rootNodes)
+                private MenuItemNode CreateAssetControlNode(VRCExpressionsMenu.Control control)
                 {
-                    AddToFlatList(root, flatList);
+                    var node = new MenuItemNode
+                    {
+                        displayName = control != null && !string.IsNullOrEmpty(control.name)
+                            ? control.name
+                            : string.Empty
+                    };
+
+                    if (control != null && control.type == VRCExpressionsMenu.Control.ControlType.SubMenu)
+                    {
+                        VisitMenuAsset(control.subMenu, node.children);
+                    }
+
+                    return node;
                 }
 
-                return flatList;
+                private static IEnumerable<Component> GetMenuInstallTargets(GameObject avatar)
+                {
+                    return avatar.GetComponentsInChildren<Component>(true)
+                        .Where(component => IsMenuInstallTarget(component));
+                }
+
+                private static bool IsMenuInstallTarget(Component component)
+                {
+                    return component != null &&
+                           string.Equals(component.GetType().FullName, MENU_INSTALL_TARGET_TYPE, StringComparison.Ordinal);
+                }
+
+                private static ModularAvatarMenuInstaller GetTargetedInstaller(Component installTarget)
+                {
+                    if (!IsMenuInstallTarget(installTarget)) return null;
+
+                    var field = installTarget.GetType().GetField("installer");
+                    return field?.GetValue(installTarget) as ModularAvatarMenuInstaller;
+                }
+
+                private static MenuSource GetFirstMenuSource(GameObject gameObject)
+                {
+                    if (gameObject == null) return null;
+
+                    return gameObject.GetComponents<MonoBehaviour>()
+                        .OfType<MenuSource>()
+                        .FirstOrDefault();
+                }
             }
 
-            private static void AddToFlatList(MenuItemNode node, List<MenuItemNode> list)
+            private static (bool isReactiveContent, bool isEditorOnlyReactiveContent) ClassifyReactiveContent(ModularAvatarMenuItem menuItem)
             {
-                list.Add(node);
-                foreach (var child in node.children)
+                if (menuItem == null) return (false, false);
+
+                var reactiveComponents = menuItem.GetComponentsInChildren<ReactiveComponent>(true);
+                var hasReactiveContent = false;
+                var allReactiveContentEditorOnly = true;
+
+                foreach (var reactiveComponent in reactiveComponents)
                 {
-                    child.depth = node.depth + 1;
-                    AddToFlatList(child, list);
+                    if (reactiveComponent == null) continue;
+
+                    if (reactiveComponent.transform != menuItem.transform)
+                    {
+                        var parentMenuItem = reactiveComponent.GetComponentInParent<ModularAvatarMenuItem>();
+                        if (parentMenuItem != menuItem)
+                        {
+                            continue;
+                        }
+                    }
+
+                    hasReactiveContent = true;
+                    if (!IsEditorOnlyReactiveComponent(reactiveComponent))
+                    {
+                        allReactiveContentEditorOnly = false;
+                        break;
+                    }
                 }
+
+                return (hasReactiveContent, hasReactiveContent && allReactiveContentEditorOnly);
+            }
+
+            private static bool IsEditorOnlyReactiveComponent(ReactiveComponent reactiveComponent)
+            {
+                if (reactiveComponent == null) return false;
+                if (IsEditorOnlyHierarchy(reactiveComponent.transform)) return true;
+
+                var getObjectReferencesMethod = reactiveComponent.GetType().GetMethod("GetObjectReferences");
+                if (getObjectReferencesMethod == null || getObjectReferencesMethod.GetParameters().Length != 0)
+                {
+                    return false;
+                }
+
+                if (!(getObjectReferencesMethod.Invoke(reactiveComponent, null) is System.Collections.IEnumerable references))
+                {
+                    return false;
+                }
+
+                var foundReference = false;
+                foreach (var reference in references)
+                {
+                    if (reference == null) continue;
+
+                    var getMethod = reference.GetType().GetMethod("Get", new[] { typeof(Component) });
+                    if (getMethod == null) continue;
+
+                    var targetObject = getMethod.Invoke(reference, new object[] { reactiveComponent }) as GameObject;
+                    if (targetObject == null) continue;
+
+                    foundReference = true;
+                    if (!IsEditorOnlyHierarchy(targetObject.transform))
+                    {
+                        return false;
+                    }
+                }
+
+                return foundReference;
+            }
+
+            private static bool IsEditorOnlyHierarchy(Transform transform)
+            {
+                var current = transform;
+                while (current != null)
+                {
+                    if (string.Equals(current.tag, EDITOR_ONLY_TAG, StringComparison.Ordinal))
+                    {
+                        return true;
+                    }
+
+                    current = current.parent;
+                }
+
+                return false;
             }
         }
 

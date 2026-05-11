@@ -11,13 +11,13 @@ Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
 $repoRoot = Split-Path -Parent $PSScriptRoot
-$packageJsonPath = Join-Path $repoRoot 'Packages/marble810.marbleavatartools/package.json'
+$packageJsonPath = Join-Path $repoRoot 'Packages/marble810.marbleavatartoolbox/package.json'
 $changelogPath = Join-Path $repoRoot 'CHANGELOG.md'
 $releaseInputPaths = @(
     'CHANGELOG.md'
 )
 $releaseProtectedPaths = @(
-    'Packages/marble810.marbleavatartools/package.json'
+    'Packages/marble810.marbleavatartoolbox/package.json'
 )
 
 function Invoke-Git {
@@ -294,7 +294,7 @@ if ($updatedPackageJsonContent -eq $packageJsonContent) {
 
 Set-Content -LiteralPath $packageJsonPath -Value $updatedPackageJsonContent -NoNewline
 
-Invoke-Git -Arguments @('add', '--', 'CHANGELOG.md', 'Packages/marble810.marbleavatartools/package.json') | Out-Null
+Invoke-Git -Arguments @('add', '--', 'CHANGELOG.md', 'Packages/marble810.marbleavatartoolbox/package.json') | Out-Null
 Invoke-Git -Arguments @('commit', '-m', "release: $targetVersion") | Out-Null
 Invoke-Git -Arguments @('tag', $targetVersion) | Out-Null
 Invoke-Git -Arguments @('push', 'origin', 'HEAD') | Out-Null

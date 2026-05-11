@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace marble810.MarbleAvatarTools.CustomGUI.Helper
+namespace marble810.MarbleAvatarToolbox.CustomGUI.Helper
 {
     //ColorPreset
     internal static class ColorPreset

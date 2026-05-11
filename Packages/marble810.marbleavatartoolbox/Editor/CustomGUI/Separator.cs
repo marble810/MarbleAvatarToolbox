@@ -1,6 +1,6 @@
 using UnityEngine.UIElements;
 
-namespace marble810.MarbleAvatarTools.CustomGUI
+namespace marble810.MarbleAvatarToolbox.CustomGUI
 {
     internal class Separator : VisualElement
     {

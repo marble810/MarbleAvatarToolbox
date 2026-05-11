@@ -33,7 +33,7 @@ function Get-UnityPackagesPath {
 }
 
 try {
-	$targetPackagePath = Join-Path (Get-UnityPackagesPath) 'marble810.marbleavatartools'
+	$targetPackagePath = Join-Path (Get-UnityPackagesPath) 'marble810.marbleavatartoolbox'
 	$targetItem = Get-Item -LiteralPath $targetPackagePath -Force -ErrorAction SilentlyContinue
 
 	if ($null -eq $targetItem) {

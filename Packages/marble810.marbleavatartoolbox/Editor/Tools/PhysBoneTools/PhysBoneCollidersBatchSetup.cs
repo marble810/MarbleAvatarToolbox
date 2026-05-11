@@ -6,7 +6,7 @@ using VRC.SDK3.Dynamics.PhysBone.Components;
 using System.Drawing.Text;
 using HarmonyLib;
 
-namespace marble810.MarbleAvatarTools.PhysBoneTools
+namespace marble810.MarbleAvatarToolbox.PhysBoneTools
 {
     public class PhysBoneCollidersBatchSetup : EditorWindow
     {
@@ -19,7 +19,7 @@ namespace marble810.MarbleAvatarTools.PhysBoneTools
         private SerializedProperty colliderProperty;
         private SerializedProperty targetProperty;
 
-        [MenuItem("MarbleAvatarTools/PhysBone/PhysBone Colliders Batch Setup")]
+        [MenuItem("MarbleAvatarToolbox/PhysBone/PhysBone Colliders Batch Setup")]
         public static void ShowWindow()
         {
             GetWindow<PhysBoneCollidersBatchSetup>("PhysBone Colliders Batch Setup");
@@ -232,7 +232,7 @@ namespace marble810.MarbleAvatarTools.PhysBoneTools
 
             // Header
             EditorGUILayout.Space(10);
-            EditorGUILayout.LabelField("MarbleAvatarTools", EditorStyles.boldLabel);
+            EditorGUILayout.LabelField("MarbleAvatarToolbox", EditorStyles.boldLabel);
             EditorGUILayout.LabelField("PhysBone Collider Batch Applier", EditorStyles.boldLabel);
             EditorGUILayout.LabelField("", GUI.skin.horizontalSlider);
             EditorGUILayout.Space(10);

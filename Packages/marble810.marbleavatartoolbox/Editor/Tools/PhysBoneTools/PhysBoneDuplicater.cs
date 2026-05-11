@@ -1,15 +1,15 @@
 using UnityEngine;
 using UnityEditor;
-using marble810.MarbleAvatarTools.Utils;
+using marble810.MarbleAvatarToolbox.Utils;
 using UnityEditor.UIElements;
 using UnityEngine.UIElements;
 using System;
-using marble810.MarbleAvatarTools.CustomGUI;
-using marble810.MarbleAvatarTools.CustomGUI.Helper;
+using marble810.MarbleAvatarToolbox.CustomGUI;
+using marble810.MarbleAvatarToolbox.CustomGUI.Helper;
 using VRC.SDK3.Dynamics.PhysBone.Components;
 using System.Collections.Generic;
 
-namespace marble810.MarbleAvatarTools.PhysBoneTools
+namespace marble810.MarbleAvatarToolbox.PhysBoneTools
 {
     public class PhysBoneDuplicater : EditorWindow
     {
@@ -28,7 +28,7 @@ namespace marble810.MarbleAvatarTools.PhysBoneTools
         private bool _isSyncing = false;
         private IVisualElementScheduledItem _syncSchedule;
 
-        [MenuItem("MarbleAvatarTools/PhysBone/PhysBone Duplicater")]
+        [MenuItem("MarbleAvatarToolbox/PhysBone/PhysBone Duplicater")]
         public static void ShowWindow()
         {
             GetWindow<PhysBoneDuplicater>("PhysBone Duplicater");

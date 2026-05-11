@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
 
-namespace marble810.MarbleAvatarTools.Utils
+namespace marble810.MarbleAvatarToolbox.Utils
 {
     internal static class HierarchyNodeHandler
     {

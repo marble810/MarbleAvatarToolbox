@@ -7,12 +7,12 @@ using UnityEngine;
 using VRC.SDK3.Avatars.Components;
 using VRC.SDKBase.Editor.BuildPipeline;
 
-namespace marble810.MarbleAvatarTools.PlayModeTools
+namespace marble810.MarbleAvatarToolbox.PlayModeTools
 {
     [InitializeOnLoad]
     internal static class PlayWithoutVRCFury
     {
-        private const string PlayMenuPath = "MarbleAvatarTools/Play Without VRCFury";
+        private const string PlayMenuPath = "MarbleAvatarToolbox/Play Without VRCFury";
         private const string ContextMenuRoot = "GameObject/marbleTools/VRCFury-Free Avatar/";
         private const string PlayContextMenuPath = ContextMenuRoot + "Play Without VRCFury";
         private const string PlayCloneSuffix = " (No VRCFury Play Clone)";

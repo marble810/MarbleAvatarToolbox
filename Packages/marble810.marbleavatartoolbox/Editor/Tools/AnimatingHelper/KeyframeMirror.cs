@@ -6,14 +6,14 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using marble810.MarbleAvatarTools.Utils;
-using marble810.MarbleAvatarTools.CustomGUI;
+using marble810.MarbleAvatarToolbox.Utils;
+using marble810.MarbleAvatarToolbox.CustomGUI;
 using UnityEditor.UIElements;
 
 
 
 
-namespace marble810.MarbleAvatarTools.AnimatingHelper
+namespace marble810.MarbleAvatarToolbox.AnimatingHelper
 {
     public class KeyframeMirror : EditorWindow
     {
@@ -72,7 +72,7 @@ namespace marble810.MarbleAvatarTools.AnimatingHelper
 
         #region Unity Callbacks
 
-        [MenuItem("MarbleAvatarTools/Keyframe Mirror")]
+        [MenuItem("MarbleAvatarToolbox/Keyframe Mirror")]
         public static void ShowWindow()
         {
             var window = GetWindow<KeyframeMirror>("Keyframe Mirror");

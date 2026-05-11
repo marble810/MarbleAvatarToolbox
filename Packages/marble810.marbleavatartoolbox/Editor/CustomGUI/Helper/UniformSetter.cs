@@ -3,10 +3,10 @@ using UnityEditor;
 using System;
 using System.Collections.Generic;
 using UnityEngine.UIElements;
-using marble810.MarbleAvatarTools.Utils;
+using marble810.MarbleAvatarToolbox.Utils;
 using UnityEditor.UIElements;
 
-namespace marble810.MarbleAvatarTools.CustomGUI.Helper
+namespace marble810.MarbleAvatarToolbox.CustomGUI.Helper
 {
     internal static class UniformSetter
     {

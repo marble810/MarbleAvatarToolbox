@@ -3,11 +3,11 @@ using UnityEditor;
 using System;
 using System.Collections.Generic;
 using UnityEngine.UIElements;
-using marble810.MarbleAvatarTools.Utils;
-using marble810.MarbleAvatarTools.CustomGUI.Helper;
+using marble810.MarbleAvatarToolbox.Utils;
+using marble810.MarbleAvatarToolbox.CustomGUI.Helper;
 using UnityEditor.UIElements;
 
-namespace marble810.MarbleAvatarTools.CustomGUI
+namespace marble810.MarbleAvatarToolbox.CustomGUI
 {
     /// <summary>
     /// 层级节点视图组件，用于在Unity Editor中展示和操作树形层级结构

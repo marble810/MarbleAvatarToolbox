@@ -1,7 +1,11 @@
 # MarbleAvatarToolbox
 
 ## 工具列表
-### 
+- **Keyframe Mirror**（`MarbleAvatarToolbox/Keyframe Mirror`）：按 Left/Right 等左右命名模式自动匹配对称骨骼，将动画片段全部或选中的关键帧沿指定镜像轴在参考根局部空间内镜像，写回左右两侧骨骼。
+- **MaMenuSwitchBoard**（`MarbleAvatarToolbox/MaMenuSwitchBoard`）：集中列出场景 Avatar 的全部 MA 菜单项，借助 MA Simulator API 在编辑器内直接覆盖/切换菜单参数状态进行预览，无需进入 Play；支持收藏、EditorOnly 过滤与快速聚焦。
+- **PhysBone Colliders Batch Setup**（`MarbleAvatarToolbox/PhysBone/PhysBone Colliders Batch Setup`）：将一组 VRCPhysBoneCollider 批量应用到多个目标 VRCPhysBone，一次性覆盖其碰撞体列表。
+- **PhysBone Duplicater**（`MarbleAvatarToolbox/PhysBone/PhysBone Duplicater`）：在源与目标骨骼间按层级自动匹配，把源骨骼链上的 VRCPhysBone 配置整链复制到目标骨骼链，支持撤销。
+- **Play Without VRCFury**（`MarbleAvatarToolbox/Play Without VRCFury`）：为选中 Avatar 创建移除 VRCFury 组件的临时克隆并进入 Play 模式，在 VRCFury 构建失败时仍可测试其余 NDMF 插件的处理结果，退出 Play 后自动恢复并清理克隆。
 
 
 ## 开发

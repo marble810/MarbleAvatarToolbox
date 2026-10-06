@@ -5,7 +5,9 @@
 - **MaMenuSwitchBoard**（`MarbleAvatarToolbox/MaMenuSwitchBoard`）：集中列出场景 Avatar 的全部 MA 菜单项，借助 MA Simulator API 在编辑器内直接覆盖/切换菜单参数状态进行预览，无需进入 Play；支持收藏、EditorOnly 过滤与快速聚焦。
 - **PhysBone Colliders Batch Setup**（`MarbleAvatarToolbox/PhysBone/PhysBone Colliders Batch Setup`）：将一组 VRCPhysBoneCollider 批量应用到多个目标 VRCPhysBone，一次性覆盖其碰撞体列表。
 - **PhysBone Duplicater**（`MarbleAvatarToolbox/PhysBone/PhysBone Duplicater`）：在源与目标骨骼间按层级自动匹配，把源骨骼链上的 VRCPhysBone 配置整链复制到目标骨骼链，支持撤销。
-- **Play Without VRCFury**（`MarbleAvatarToolbox/Play Without VRCFury`）：为选中 Avatar 创建移除 VRCFury 组件的临时克隆并进入 Play 模式，在 VRCFury 构建失败时仍可测试其余 NDMF 插件的处理结果，退出 Play 后自动恢复并清理克隆。
+- **QuickPlay**（`MarbleAvatarToolbox/QuickPlay`，右键 `GameObject/marbleTools/QuickPlay`）：为选中 Avatar 创建临时副本并进入 Play，在副本上剔除所选优化配置；退出 Play 后恢复原对象并清理副本。默认仅勾选 VRCFury（承接原 Play Without VRCFury 用途）。
+  - **基础版边界**：仅用于临时预览，要求 NDMF 的 Apply on Play 已开启；本版本**不做完整 SDK 构建结果校验**，也不会手工补发 SDK preprocess，预览结果不等同于最终上传/构建产物；完整整链结果观测留待后续版本。
+- **QuickPlay Settings**（`MarbleAvatarToolbox/QuickPlay Settings`）：用十个工具级 Checkbox 选择 QuickPlay 要剔除的工具，勾选即时保存到项目内用户级配置（`UserSettings/MarbleAvatarToolbox/QuickPlaySettings.asset`）。未安装的工具会禁用显示但保留偏好；全部不勾选也是合法配置。不兼容的工具会在启动前提示，请取消勾选或使用兼容版本。
 
 
 ## 开发

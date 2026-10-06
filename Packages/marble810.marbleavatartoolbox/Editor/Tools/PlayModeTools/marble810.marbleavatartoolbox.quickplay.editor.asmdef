@@ -1,0 +1,23 @@
+{
+    "name": "marble810.marbleavatartoolbox.quickplay.editor",
+    "rootNamespace": "marble810.MarbleAvatarToolbox.PlayModeTools",
+    "references": [
+        "nadena.dev.ndmf",
+        "nadena.dev.ndmf.runtime",
+        "VRC.SDKBase",
+        "VRC.SDK3A",
+        "VRC.SDKBase.Editor",
+        "marble810.marbleavatartoolbox.quickplay.marker"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

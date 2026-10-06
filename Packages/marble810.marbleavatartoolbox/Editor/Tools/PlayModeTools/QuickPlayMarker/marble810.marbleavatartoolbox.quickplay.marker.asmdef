@@ -1,0 +1,16 @@
+{
+    "name": "marble810.marbleavatartoolbox.quickplay.marker",
+    "rootNamespace": "marble810.MarbleAvatarToolbox.PlayModeTools",
+    "references": [],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [
+        "UNITY_EDITOR"
+    ],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

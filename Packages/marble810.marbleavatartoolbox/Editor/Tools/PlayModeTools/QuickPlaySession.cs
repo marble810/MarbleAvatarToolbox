@@ -823,32 +823,13 @@ namespace marble810.MarbleAvatarToolbox.PlayModeTools
                     Debug.LogException(exception);
                 }
             }
-            else if (restoreSelection)
-            {
-                Debug.Log("[QuickPlay] 当前 Selection 已由用户改变，保持现状，不覆盖。");
-            }
-
-            try
-            {
-                var newlyDirty = QuickPlayObjectIdentity.FindNewlyDirtyScenes(record.cleanScenePaths);
-                if (newlyDirty.Count > 0)
-                {
-                    Debug.LogWarning(
-                        "[QuickPlay] 以下场景在会话开始时是干净的，现在有未保存修改（原因未归因，QuickPlay 不会自动清除 dirty）：" +
-                        string.Join(", ", newlyDirty));
-                }
-            }
-            catch (Exception exception)
-            {
-                Debug.LogWarning("[QuickPlay] 检查场景 dirty 状态失败：" + exception.Message);
-            }
 
             watch.Stop();
 
             if (cleanupComplete && !restorationUnconfirmed)
             {
                 ResetRuntimeState(clearStore: true);
-                Debug.Log($"[QuickPlay] 会话已结束（{reason}），清理耗时 {watch.ElapsedMilliseconds}ms。");
+                Debug.Log($"[QuickPlay] Play exited. Cleanup took {watch.ElapsedMilliseconds} ms.");
                 return true;
             }
 

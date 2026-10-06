@@ -5,6 +5,11 @@ All notable changes to this project will be documented in this file.
 The format is based on Keep a Changelog,
 and this project adheres to Semantic Versioning.
 
+## [1.1.1] - 2026-10-06
+### Changed
+- 移除 QuickPlay 退出时的 Selection 已变化与场景 dirty 提示，不改变恢复和清理行为。
+- 清理完成日志改为英文，仅显示 Play 已退出与清理耗时：`[QuickPlay] Play exited. Cleanup took N ms.`
+
 ## [1.1.0] - 2026-10-06
 ### Added
 - QuickPlay：`MarbleAvatarToolbox/QuickPlay`（以及 GameObject 右键入口）为选中 Avatar 创建临时副本并进入 Play，在副本上剔除所选优化配置；退出 Play 后恢复原对象并清理副本。

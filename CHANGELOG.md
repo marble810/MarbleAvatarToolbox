@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on Keep a Changelog,
 and this project adheres to Semantic Versioning.
 
+## [1.1.2] - 2026-10-08
+### 调整
+- 将开发中的 NeckMaskMaker 拆为独立仓库与 `marble810.neckmaskmaker` 包；Toolbox 不自动依赖或安装该插件。既有正式版本未包含该功能。
+- README 增加独立插件、VPM 安装与迁移回滚说明；原包 ID、依赖与其他工具保持不变。
+- 精简 Keyframe Mirror 和 QuickPlay Settings 的界面说明文案，不改变镜像、配置或预览逻辑。
+
 ## [1.1.1] - 2026-10-06
 ### Changed
 - 移除 QuickPlay 退出时的 Selection 已变化与场景 dirty 提示，不改变恢复和清理行为。

@@ -3,13 +3,18 @@
 ## 工具列表
 - **Keyframe Mirror**（`MarbleAvatarToolbox/Keyframe Mirror`）：按 Left/Right 等左右命名模式自动匹配对称骨骼，将动画片段全部或选中的关键帧沿指定镜像轴在参考根局部空间内镜像，写回左右两侧骨骼。
 - **MaMenuSwitchBoard**（`MarbleAvatarToolbox/MaMenuSwitchBoard`）：集中列出场景 Avatar 的全部 MA 菜单项，借助 MA Simulator API 在编辑器内直接覆盖/切换菜单参数状态进行预览，无需进入 Play；支持收藏、EditorOnly 过滤与快速聚焦。
-- **Neck Mask Maker**（`MarbleAvatarToolbox/Neck Mask Maker`）：在 Scene 中选择 Body_base 的颈部循环线，通过列表勾选 Body / Body_base 的目标材质槽，按 UV 表面位置在 GPU 生成 Mask。每槽独立红色预览、贴图预览及 PNG 导出，避免不同材质槽的重叠 UV 串色；文件名包含对象角色、槽号与材质名。界面支持中文 / 日本語 / English 三语切换。
 - **PhysBone Colliders Batch Setup**（`MarbleAvatarToolbox/PhysBone/PhysBone Colliders Batch Setup`）：将一组 VRCPhysBoneCollider 批量应用到多个目标 VRCPhysBone，一次性覆盖其碰撞体列表。
 - **PhysBone Duplicater**（`MarbleAvatarToolbox/PhysBone/PhysBone Duplicater`）：在源与目标骨骼间按层级自动匹配，把源骨骼链上的 VRCPhysBone 配置整链复制到目标骨骼链，支持撤销。
 - **QuickPlay**（`MarbleAvatarToolbox/QuickPlay`，右键 `GameObject/marbleTools/QuickPlay`）：为选中 Avatar 创建临时副本并进入 Play，在副本上剔除所选优化配置；退出 Play 后恢复原对象并清理副本。默认仅勾选 VRCFury（承接原 Play Without VRCFury 用途）。
   - **基础版边界**：仅用于临时预览，要求 NDMF 的 Apply on Play 已开启；本版本**不做完整 SDK 构建结果校验**，也不会手工补发 SDK preprocess，预览结果不等同于最终上传/构建产物；完整整链结果观测留待后续版本。
 - **QuickPlay Settings**（`MarbleAvatarToolbox/QuickPlay Settings`）：用十个工具级 Checkbox 选择 QuickPlay 要剔除的工具，勾选即时保存到项目内用户级配置（`UserSettings/MarbleAvatarToolbox/QuickPlaySettings.asset`）。未安装的工具会禁用显示但保留偏好；全部不勾选也是合法配置。不兼容的工具会在启动前提示，请取消勾选或使用兼容版本。
 
+
+## 独立插件
+
+[Neck Mask Maker](https://github.com/marble810/NeckMaskMaker) 已从本仓库拆出，包 ID 为 `marble810.neckmaskmaker`，菜单为 `Tools/Marble/Neck Mask Maker`。需要单独安装；Toolbox 不会自动依赖它。既有 Toolbox 正式发布版本未包含该工具。
+
+两个包共用 [Marble VPM 总列表](https://marble810.github.io/vpmlist/index.json)，原订阅地址不变。独立插件源码迁移不等同于正式发布，请以其 Release 和列表中的版本为准。开发副本迁移与回滚说明见 [拆分记录](Docs/NeckMaskMakerExtraction.md)。
 
 ## 开发
 ### 环境配置

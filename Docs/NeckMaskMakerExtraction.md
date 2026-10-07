@@ -14,6 +14,12 @@ UnityMCP 的 6 项合成回归、2 项真实 Avatar 回归通过；实际域重�
 
 独立源码首提交 `7b0f83b`，列表边界修正 `5940139`；VPM 来源提交 `18ff760`、未发布来源保护提交 `9a52229`，均已推送。独立仓库 CI 和无 Release 跳过流程成功，总列表生成及 Pages 部署成功，产物中保留 Toolbox 的三个历史版本、原列表 ID/URL，未伪造 NeckMask 下载版本。
 
-首次正式发布与最小权限 `VPMLIST_DISPATCH_TOKEN` 配置仍需后续完成。本仓库本次只做两个本地 commit，不自动推送或发布 Toolbox。
+上述拆分阶段仅提交源码，未打发布 tag。后续用户确认推送，并于 2026-10-08 确认发布 Toolbox 1.1.2 与 NeckMaskMaker 0.1.0。
+
+## 首次发布
+
+两个 Release 和自动通知 VPM 总列表均成功，总列表现已包含 Toolbox 1.1.2 与 NeckMaskMaker 0.1.0，旧 Toolbox 版本保持。新仓库 Secret 由用户配置，Token 未从旧仓库复制或读回。
+
+实下载 ZIP 的 SHA256 与总列表及各自独立列表一致；独立 NeckMask 网站的首次模板遗漏已修复，未改写已发布 tag/ZIP。完整记录见 [首次发布验证](https://github.com/marble810/NeckMaskMaker/blob/main/Docs/ReleaseVerification.md)。VCC 安装/升级/卸载与人工视觉验收仍待用户确认。
 
 详细迁移边界、偏好迁移、待验收项与发布配置见独立仓库 [Docs/Extraction.md](https://github.com/marble810/NeckMaskMaker/blob/main/Docs/Extraction.md)。本仓库 OpenSpec 历史保留，新的插件功能规格和后续工作由独立仓库维护。

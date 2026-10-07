@@ -172,26 +172,6 @@ namespace marble810.MarbleAvatarToolbox.AnimatingHelper
             axisField.bindingPath = "mirrorAxis";
             settingsSection.Add(axisField);
 
-            var ruleLabel = new Label();
-            ruleLabel.style.marginTop = 5;
-            ruleLabel.style.color = new Color(0.6f, 0.6f, 0.6f);
-            ruleLabel.style.fontSize = 11;
-            settingsSection.Add(ruleLabel);
-
-            void UpdateRuleLabel(MirrorAxis axis)
-            {
-                ruleLabel.text = axis switch
-                {
-                    MirrorAxis.X => "X Axis: Reflect against the reference root's local YZ plane.",
-                    MirrorAxis.Y => "Y Axis: Reflect against the reference root's local XZ plane.",
-                    MirrorAxis.Z => "Z Axis: Reflect against the reference root's local XY plane.",
-                    _ => ""
-                };
-            }
-
-            axisField.RegisterValueChangedCallback(evt => UpdateRuleLabel((MirrorAxis)evt.newValue));
-            UpdateRuleLabel(_tempObject.mirrorAxis);
-
             container.Add(new Separator());
 
             var keySymmetrySection = CreateSection(container, "Key Symmetry");
@@ -269,12 +249,6 @@ namespace marble810.MarbleAvatarToolbox.AnimatingHelper
             container.Add(new Separator());
 
             var mirrorKeyframesSection = CreateSection(container, "Mirror Keyframes");
-            var mirrorKeyframesHelp = new Label("Aggregates selected Transform channels by Transform + time, mirrors the full pose in the Animation Window reference root local space, and writes the mirrored result back to the same Transform.");
-            mirrorKeyframesHelp.style.whiteSpace = WhiteSpace.Normal;
-            mirrorKeyframesHelp.style.color = new Color(0.6f, 0.6f, 0.6f);
-            mirrorKeyframesHelp.style.marginBottom = 8;
-            mirrorKeyframesSection.Add(mirrorKeyframesHelp);
-
             var mirrorSelectedButton = new Button(MirrorSelectedKeyframes) { text = "Mirror Selected Keyframes" };
             mirrorSelectedButton.style.width = 190;
             mirrorSelectedButton.style.alignSelf = Align.Center;

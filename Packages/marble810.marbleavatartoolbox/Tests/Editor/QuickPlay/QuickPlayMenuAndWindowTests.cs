@@ -65,7 +65,6 @@ namespace MarbleQuickPlay.Tests
         public void Window_TextContractMatchesSpec()
         {
             Assert.AreEqual("请选择剔除的工具", QuickPlaySettingsWindow.HeaderText);
-            Assert.AreEqual("仅影响 QuickPlay；剔除后的预览可能不同于最终构建。", QuickPlaySettingsWindow.RiskText);
             Assert.AreEqual("QuickPlay Settings", QuickPlaySettingsWindow.WindowTitle);
             StringAssert.Contains("未安装", QuickPlaySettingsWindow.NotInstalledSuffix);
         }

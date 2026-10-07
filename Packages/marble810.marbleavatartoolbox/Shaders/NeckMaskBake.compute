@@ -1,0 +1,179 @@
+// UV 贡献映射、表面距离缓存与最终 Mask。唯一的 GPU 表面采样管线。
+#pragma kernel CountCoverage
+#pragma kernel BuildSamples
+#pragma kernel BuildFields
+#pragma kernel MapSurface
+#pragma kernel Merge
+#pragma kernel Dilate
+#pragma kernel Pack
+
+struct PixelRange { uint start; uint count; };
+struct UvSample { uint face; float w1; float w2; };
+StructuredBuffer<float2> _UVs;
+StructuredBuffer<int> _Triangles;
+StructuredBuffer<int4> _FaceBounds;
+StructuredBuffer<PixelRange> _TileRanges;
+StructuredBuffer<int> _TileFaces;
+RWStructuredBuffer<PixelRange> _PixelRanges;
+RWStructuredBuffer<UvSample> _Samples;
+StructuredBuffer<float3> _Vertices;
+StructuredBuffer<float3> _Segments; // 每对顶点是一条独立线段，不跨循环线连接。
+RWStructuredBuffer<float> _Distances; // 每个表面贡献到颈部循环线的距离。
+
+int _Size;
+int _TilesX;
+int _TileSize;
+int _SampleCount;
+int _FieldRowWidth;
+int _SegmentCount;
+float _MaxDistance;
+int _SamplingMode; // 0 = Linear、1 = Smooth、2 = Constant，与 NeckMaskSamplingMode 一致。
+float _SamplingParameter; // Smooth = 曲率，Constant = 阈值，Linear 无参数。
+
+// 模式值与 NeckMaskSamplingMode 一致：0 = Linear（默认分支）、1 = Smooth、2 = Constant。
+#define SAMPLING_SMOOTH 1
+#define SAMPLING_CONSTANT 2
+
+Texture2D<float2> _RawInput;
+Texture2D<float2> _RawLow;
+Texture2D<float2> _RawHigh;
+RWTexture2D<float2> _RawOutput; // Mask 与 coverage 分开，0 Mask 也是有效覆盖。
+RWTexture2D<float4> _PackedOutput;
+
+bool Hit(uint2 pixel, uint face, out float2 bary)
+{
+    bary = 0;
+    int4 bounds = _FaceBounds[face];
+    int2 signedPixel = int2(pixel);
+    if (signedPixel.x < bounds.x || signedPixel.y < bounds.y || signedPixel.x > bounds.z || signedPixel.y > bounds.w) return false;
+    uint baseIndex = face * 3;
+    float2 a = _UVs[_Triangles[baseIndex]];
+    float2 b = _UVs[_Triangles[baseIndex + 1]];
+    float2 c = _UVs[_Triangles[baseIndex + 2]];
+    float area = (b.x - a.x) * (c.y - a.y) - (c.x - a.x) * (b.y - a.y);
+    if (abs(area) < 1e-12) return false;
+    float2 p = (float2(pixel) + 0.5) / _Size;
+    bary.x = ((p.x - a.x) * (c.y - a.y) - (c.x - a.x) * (p.y - a.y)) / area;
+    bary.y = ((b.x - a.x) * (p.y - a.y) - (p.x - a.x) * (b.y - a.y)) / area;
+    float epsilon = -0.75 / _Size;
+    return min(min(bary.x, bary.y), 1.0 - bary.x - bary.y) >= epsilon;
+}
+
+[numthreads(8, 8, 1)]
+void CountCoverage(uint3 id : SV_DispatchThreadID)
+{
+    if (any(id.xy >= (uint)_Size)) return;
+    PixelRange tile = _TileRanges[(id.y / _TileSize) * _TilesX + id.x / _TileSize];
+    uint count = 0;
+    for (uint k = 0; k < tile.count; k++)
+    {
+        float2 bary;
+        if (Hit(id.xy, _TileFaces[tile.start + k], bary)) count++;
+    }
+    PixelRange result;
+    result.start = 0;
+    result.count = count;
+    _PixelRanges[id.y * _Size + id.x] = result;
+}
+
+[numthreads(8, 8, 1)]
+void BuildSamples(uint3 id : SV_DispatchThreadID)
+{
+    if (any(id.xy >= (uint)_Size)) return;
+    PixelRange tile = _TileRanges[(id.y / _TileSize) * _TilesX + id.x / _TileSize];
+    PixelRange pixel = _PixelRanges[id.y * _Size + id.x];
+    uint write = pixel.start;
+    for (uint k = 0; k < tile.count; k++)
+    {
+        uint face = _TileFaces[tile.start + k];
+        float2 bary;
+        if (!Hit(id.xy, face, bary)) continue;
+        UvSample sample;
+        sample.face = face;
+        sample.w1 = bary.x;
+        sample.w2 = bary.y;
+        _Samples[write++] = sample;
+    }
+}
+
+[numthreads(64, 1, 1)]
+void BuildFields(uint3 id : SV_DispatchThreadID)
+{
+    uint index = id.x + id.y * _FieldRowWidth;
+    if (index >= (uint)_SampleCount) return;
+    UvSample sample = _Samples[index];
+    uint t = sample.face * 3;
+    float3 p = (1.0 - sample.w1 - sample.w2) * _Vertices[_Triangles[t]]
+        + sample.w1 * _Vertices[_Triangles[t + 1]] + sample.w2 * _Vertices[_Triangles[t + 2]];
+    float bestSqr = 3.402823466e+38;
+    for (int k = 0; k < _SegmentCount; k++)
+    {
+        float3 a = _Segments[k * 2];
+        float3 ab = _Segments[k * 2 + 1] - a;
+        float t = saturate(dot(p - a, ab) / max(dot(ab, ab), 1e-12));
+        float3 delta = p - (a + t * ab);
+        bestSqr = min(bestSqr, dot(delta, delta));
+    }
+    _Distances[index] = sqrt(bestSqr);
+}
+
+// 距离衰减：Linear 线性；Smooth 由曲率控制 smoothstep 的弯曲程度；Constant 按阈值直接二值化。
+float SurfaceMask(float distance)
+{
+    float t = saturate(distance / max(_MaxDistance, 0.0001));
+    if (_SamplingMode == SAMPLING_CONSTANT) return t <= _SamplingParameter ? 1.0 : 0.0;
+    if (_SamplingMode == SAMPLING_SMOOTH)
+    {
+        float u = pow(t, max(_SamplingParameter, 0.0001));
+        return 1.0 - u * u * (3.0 - 2.0 * u);
+    }
+    return 1.0 - t; // Linear：原版线性衰减，也作为未知模式的回退。
+}
+
+[numthreads(8, 8, 1)]
+void MapSurface(uint3 id : SV_DispatchThreadID)
+{
+    if (any(id.xy >= (uint)_Size)) return;
+    PixelRange pixel = _PixelRanges[id.y * _Size + id.x];
+    float sum = 0;
+    for (uint k = 0; k < pixel.count; k++) sum += SurfaceMask(_Distances[pixel.start + k]);
+    _RawOutput[id.xy] = float2(pixel.count > 0 ? sum / pixel.count : 0, pixel.count > 0 ? 1 : 0);
+}
+
+[numthreads(8, 8, 1)]
+void Merge(uint3 id : SV_DispatchThreadID)
+{
+    if (any(id.xy >= (uint)_Size)) return;
+    float2 high = _RawHigh.Load(int3(id.xy, 0));
+    _RawOutput[id.xy] = high.y > 0 ? high : _RawLow.Load(int3(id.xy, 0));
+}
+
+[numthreads(8, 8, 1)]
+void Dilate(uint3 id : SV_DispatchThreadID)
+{
+    if (any(id.xy >= (uint)_Size)) return;
+    float2 value = _RawInput.Load(int3(id.xy, 0));
+    if (value.y > 0) { _RawOutput[id.xy] = value; return; }
+    float sum = 0;
+    uint count = 0;
+    for (int dy = -1; dy <= 1; dy++)
+    for (int dx = -1; dx <= 1; dx++)
+    {
+        if (dx == 0 && dy == 0) continue;
+        int2 p = int2(id.xy) + int2(dx, dy);
+        if (any(p < 0) || any(p >= _Size)) continue;
+        float2 other = _RawInput.Load(int3(p, 0));
+        if (other.y <= 0) continue;
+        sum += other.x;
+        count++;
+    }
+    _RawOutput[id.xy] = float2(count > 0 ? sum / count : value.x, count > 0 ? 1 : 0);
+}
+
+[numthreads(8, 8, 1)]
+void Pack(uint3 id : SV_DispatchThreadID)
+{
+    if (any(id.xy >= (uint)_Size)) return;
+    float mask = floor(saturate(_RawInput.Load(int3(id.xy, 0)).x) * 255.0 + 0.5) / 255.0;
+    _PackedOutput[id.xy] = float4(mask, mask, mask, mask);
+}

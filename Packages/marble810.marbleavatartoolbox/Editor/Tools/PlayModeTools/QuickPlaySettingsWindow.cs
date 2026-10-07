@@ -4,7 +4,7 @@ using UnityEngine;
 namespace marble810.MarbleAvatarToolbox.PlayModeTools
 {
     /// <summary>
-    /// QuickPlay Settings：固定十项工具 Checkbox + 一条范围说明。
+    /// QuickPlay Settings：固定十项工具 Checkbox。
     /// 只修改用户级配置；打开/修改窗口不创建 clone、不进入 Play、不执行剥离。
     /// </summary>
     internal sealed class QuickPlaySettingsWindow : EditorWindow
@@ -12,7 +12,6 @@ namespace marble810.MarbleAvatarToolbox.PlayModeTools
         internal const string MenuPath = "MarbleAvatarToolbox/QuickPlay Settings";
         internal const string WindowTitle = "QuickPlay Settings";
         internal const string HeaderText = "请选择剔除的工具";
-        internal const string RiskText = "仅影响 QuickPlay；剔除后的预览可能不同于最终构建。";
         internal const string NotInstalledSuffix = "\n\n（未安装）";
         internal const string IncompatibleSuffix = "\n\n（当前版本不兼容，勾选后无法启动）：";
 
@@ -63,9 +62,6 @@ namespace marble810.MarbleAvatarToolbox.PlayModeTools
                     DrawToolToggle(tool, preferences);
                 }
             }
-
-            EditorGUILayout.Space(2f);
-            EditorGUILayout.HelpBox(RiskText, MessageType.Info);
         }
 
         private static void DrawToolToggle(QuickPlayToolDefinition tool, QuickPlayPreferences preferences)

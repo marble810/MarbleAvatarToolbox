@@ -72,7 +72,7 @@ namespace marble810.MarbleAvatarToolbox.AnimatingHelper
 
         #region Unity Callbacks
 
-        [MenuItem("MarbleAvatarToolbox/Keyframe Mirror")]
+        [MenuItem("Marble/MarbleAvatarToolbox/Keyframe Mirror", false, 3)]
         public static void ShowWindow()
         {
             var window = GetWindow<KeyframeMirror>("Keyframe Mirror");

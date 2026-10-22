@@ -9,7 +9,7 @@ namespace marble810.MarbleAvatarToolbox.PlayModeTools
     /// </summary>
     internal sealed class QuickPlaySettingsWindow : EditorWindow
     {
-        internal const string MenuPath = "MarbleAvatarToolbox/QuickPlay Settings";
+        internal const string MenuPath = "Marble/MarbleAvatarToolbox/QuickPlay Settings";
         internal const string WindowTitle = "QuickPlay Settings";
         internal const string HeaderText = "请选择剔除的工具";
         internal const string NotInstalledSuffix = "\n\n（未安装）";
@@ -18,7 +18,7 @@ namespace marble810.MarbleAvatarToolbox.PlayModeTools
         private static QuickPlayPreferences _preferences;
         private Vector2 _scrollPosition;
 
-        [MenuItem(MenuPath, false, 100)]
+        [MenuItem(MenuPath, false, 1)]
         private static void ShowWindow()
         {
             var window = GetWindow<QuickPlaySettingsWindow>(false, WindowTitle, true);

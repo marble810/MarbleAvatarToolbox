@@ -28,7 +28,7 @@ namespace marble810.MarbleAvatarToolbox.PhysBoneTools
         private bool _isSyncing = false;
         private IVisualElementScheduledItem _syncSchedule;
 
-        [MenuItem("MarbleAvatarToolbox/PhysBone/PhysBone Duplicater")]
+        [MenuItem("Marble/MarbleAvatarToolbox/PhysBone/PhysBone Duplicater", false, 5)]
         public static void ShowWindow()
         {
             GetWindow<PhysBoneDuplicater>("PhysBone Duplicater");

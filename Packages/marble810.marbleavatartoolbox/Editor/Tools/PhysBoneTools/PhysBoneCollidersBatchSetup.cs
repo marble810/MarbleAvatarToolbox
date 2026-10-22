@@ -19,7 +19,7 @@ namespace marble810.MarbleAvatarToolbox.PhysBoneTools
         private SerializedProperty colliderProperty;
         private SerializedProperty targetProperty;
 
-        [MenuItem("MarbleAvatarToolbox/PhysBone/PhysBone Colliders Batch Setup")]
+        [MenuItem("Marble/MarbleAvatarToolbox/PhysBone/PhysBone Colliders Batch Setup", false, 4)]
         public static void ShowWindow()
         {
             GetWindow<PhysBoneCollidersBatchSetup>("PhysBone Colliders Batch Setup");

@@ -47,8 +47,8 @@ namespace MarbleQuickPlay.Tests
         {
             var paths = CollectMenuItemPaths();
 
-            CollectionAssert.Contains(paths, "MarbleAvatarToolbox/QuickPlay");
-            CollectionAssert.Contains(paths, "MarbleAvatarToolbox/QuickPlay Settings");
+            CollectionAssert.Contains(paths, "Marble/MarbleAvatarToolbox/QuickPlay");
+            CollectionAssert.Contains(paths, "Marble/MarbleAvatarToolbox/QuickPlay Settings");
             CollectionAssert.Contains(paths, "GameObject/marbleTools/QuickPlay");
         }
 

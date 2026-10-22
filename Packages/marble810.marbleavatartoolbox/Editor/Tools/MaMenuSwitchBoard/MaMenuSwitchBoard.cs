@@ -44,7 +44,7 @@ namespace marble810.MarbleAvatarToolbox.MaMenuSwitchBoard
         private const string EDITOR_ONLY_TAG = "EditorOnly";
         private static StyleSheet ussAsset;
 
-        [MenuItem("MarbleAvatarToolbox/MaMenuSwitchBoard")]
+        [MenuItem("Marble/MarbleAvatarToolbox/MaMenuSwitchBoard", false, 2)]
         public static void ShowWindow()
         {
             var window = GetWindow<MaMenuSwitchBoard>();

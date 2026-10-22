@@ -9,10 +9,10 @@ namespace marble810.MarbleAvatarToolbox.PlayModeTools
     /// </summary>
     internal static class QuickPlayMenus
     {
-        private const string TopMenuPath = "MarbleAvatarToolbox/QuickPlay";
+        private const string TopMenuPath = "Marble/MarbleAvatarToolbox/QuickPlay";
         private const string ContextMenuPath = "GameObject/marbleTools/QuickPlay";
 
-        [MenuItem(TopMenuPath, false, 20)]
+        [MenuItem(TopMenuPath, false, 0)]
         private static void StartFromMenu()
         {
             QuickPlaySession.Start(Selection.activeGameObject);

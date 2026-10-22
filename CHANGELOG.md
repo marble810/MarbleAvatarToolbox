@@ -5,6 +5,11 @@ All notable changes to this project will be documented in this file.
 The format is based on Keep a Changelog,
 and this project adheres to Semantic Versioning.
 
+## [1.1.3] - 2026-10-22
+### 调整
+- 将全部顶部工具入口统一移至 `Marble/MarbleAvatarToolbox`，排在独立插件 `Marble/NeckMaskMaker` 之前。
+- 保留 QuickPlay 的 GameObject 右键入口；同步使用文档与既有菜单路径断言。
+
 ## [1.1.2] - 2026-10-08
 ### 调整
 - 将开发中的 NeckMaskMaker 拆为独立仓库与 `marble810.neckmaskmaker` 包；Toolbox 不自动依赖或安装该插件。既有正式版本未包含该功能。
